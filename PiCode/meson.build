@@ -17,4 +17,6 @@ install_headers(proj_headers)
 asio = subproject('asio')
 asio_dep = asio.get_variable('asio_dep')
 
-executable('botCode', proj_sources, include_directories : inc, dependencies : asio_dep)
+thread_dep = dependency('threads')
+
+executable('botCode', proj_sources, include_directories : inc, dependencies : [asio_dep, thread_dep])
