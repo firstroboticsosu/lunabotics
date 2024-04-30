@@ -1,0 +1,4 @@
+paths:
+  cam:
+    runOnInit: ffmpeg  -f v4l2 -fflags nobuffer -i /dev/video2 -pix_fmt yuv420p  -vcodec libx264 -x264opts keyint=5 -muxpreload 0 -deadline realtime -preset ultrafast -flags2 fast -fflags nobuffer -rtsp_transport udp -f rtsp rtsp://localhost:$RTSP_PORT/$MTX_PATH
+    runOnInitRestart: yes
