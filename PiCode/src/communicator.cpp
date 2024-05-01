@@ -30,12 +30,12 @@ RobotState Communicator::getRobotState()
 
 void Communicator::proccesMessage()
 {
-    std::cout << "Recived from DS:";
-    for (int i = 0; i < MESS_0x01_LEN; i++)
-    {
-        std::cout <<std::hex<< unsigned(data[i])<<" ";
-    }
-    std::cout << std::endl;
+    std::cout << "Recived from DS!" << std::endl;
+    // for (int i = 0; i < MESS_0x01_LEN; i++)
+    // {
+    //     std::cout <<std::hex<< unsigned(data[i])<<" ";
+    // }
+    // std::cout << std::endl;
 
     if(data[0] == 0x01)
     {
@@ -53,14 +53,38 @@ void Communicator::processControllerState(uint8_t* data)
     rbState.frMotor = data[3];
     rbState.brMotor = data[3];
 
+    uint8_t digDriveSpeed = 50;
+    uint8_t intakeSpeed = 50;
+
+    if(data[5]&0x04) {
+        rbState.flMotor = digDriveSpeed;
+        rbState.blMotor = digDriveSpeed;
+        rbState.frMotor = digDriveSpeed;
+        rbState.brMotor = digDriveSpeed;
+    } else if (data[5]&0x08) {
+        rbState.flMotor = -digDriveSpeed;
+        rbState.blMotor = -digDriveSpeed;
+        rbState.frMotor = -digDriveSpeed;
+        rbState.brMotor = -digDriveSpeed;
+    }
+
     int8_t intakeLocUp = ((data[6]&0b00010000)>0)*40;
     int8_t intakeLocDown = ((data[6]&0b00100000)>0)*40;
 
     rbState.intakeLocation = intakeLocUp - intakeLocDown;
 
     int8_t intake = ((data[5]&0x40)>0)*20;
-    rbState.intakeMotor = intake;
 
     int8_t dump = ((data[5]&0x80)>0)*20;
+
+    if(data[7] > 20) {
+        dump = 
+    }
+
+    if(data[8] > 20) {
+        intake = 
+    }
+
     rbState.dumpMotor = dump;
+    rbState.intakeMotor = intake;
 }

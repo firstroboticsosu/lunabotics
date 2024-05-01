@@ -89,12 +89,12 @@ int RobotActuation::sendCurrentQueue()
         SerialPacket * packet = &outgoingQueue.front();
         addChecksum(packet);
 
-        std::cout << "sending: ";   
-        for (int i = 0; i < 13; i++)
-        {
-            std::cout << +packet->packet[i] << " ";
-        }
-        std::cout << std::endl;
+        // std::cout << "sending: ";   
+        // for (int i = 0; i < 13; i++)
+        // {
+        //     std::cout << +packet->packet[i] << " ";
+        // }
+        // std::cout << std::endl;
 
         std::copy(std::begin(packet->packet), std::end(packet->packet), outgoingBytes);
 
@@ -119,10 +119,10 @@ void RobotActuation::sendBytesHandler(const asio::error_code& error, std::size_t
 
 void RobotActuation::run()
 {
-    std::cout << "Full? " << byteQueueFull << "  Serial Transmit? " << serialTransmit << std::endl;
+    // std::cout << "Full? " << byteQueueFull << "  Serial Transmit? " << serialTransmit << std::endl;
     // io.reset();
     // std::cout << "ran"<<std::endl;
-    std::cout << "Stopped? " << io.stopped() << std::endl;
+    // std::cout << "Stopped? " << io.stopped() << std::endl;
     if (io.stopped())
     {
         io.reset();

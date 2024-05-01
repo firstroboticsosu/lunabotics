@@ -5,6 +5,10 @@
 
 #include "communicator.h"
 
+int get_time_ms() {
+  return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+}
+
 int main() 
 {
   std::cout << "Awaiting connection from DS" << std::endl;
@@ -18,42 +22,50 @@ int main()
 
   RobotState lastState;
 
-  int lastTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+  int lastTime = get_time_ms();
+  int lastDrive = get_time_ms();
+  int lastDump = get_time_ms();
+  int lastIntake = get_time_ms();
+  int lastDeploy = get_time_ms();
   while(true){
-
+    int currentTime = get_time_ms();
     std::cout << std::endl;
     c->readIncomingPacket();
     RobotState rbstate = c->getRobotState();
 
-    if (lastState.flMotor != rbstate.flMotor || lastState.frMotor != rbstate.frMotor)
+    if (lastState.flMotor != rbstate.flMotor || lastState.frMotor != rbstate.frMotor || currentTime - lastDrive > 1000)
     {
       rbActuator->sendDriveMotors(rbstate.flMotor, rbstate.frMotor, rbstate.blMotor, rbstate.brMotor);
-      lastTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+      std::cout << "Send Drive" << std::endl;
+      lastDrive = currentTime;
     }
 
-    if (lastState.dumpMotor != rbstate.dumpMotor)
+    if (lastState.dumpMotor != rbstate.dumpMotor || currentTime - lastDump > 1000)
     {
       rbActuator->sendDumpMotor(rbstate.dumpMotor);
-      lastTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+      lastDump = currentTime;
+      std::cout << "Send Dump" << std::endl;
     }
 
-    if (lastState.intakeMotor != rbstate.intakeMotor)
+    if (lastState.intakeMotor != rbstate.intakeMotor || currentTime - lastIntake > 1000)
     {
       rbActuator->sendIntakeMotor(rbstate.intakeMotor);
-      lastTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+      lastIntake = currentTime;
+      std::cout << "Send Intake" << std::endl;
     }
 
-    if(lastState.intakeLocation != rbstate.intakeLocation)
+    if(lastState.intakeLocation != rbstate.intakeLocation || currentTime - lastDeploy > 1000)
     {
       rbActuator->sendIntakePosition(rbstate.intakeLocation);
-      lastTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+      lastDeploy = currentTime;
+      std::cout << "Send Deploy" << std::endl;
     }
 
-    int thisTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-    if (thisTime > lastTime + 1000)
+    if (currentTime > lastTime + 1000)
     {
       rbActuator->sendHeartbeat();
-      lastTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+      std::cout << "Send Heart beat" << std::endl;
+      lastTime = currentTime;
     }
 
     rbActuator->sendCurrentQueue();
