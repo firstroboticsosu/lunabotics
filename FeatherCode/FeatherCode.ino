@@ -235,9 +235,9 @@ void processPacket()
 }
 
 void HandleSetDumpSpeedPacket() {
-  uint8_t speed = packet[3];
+  int8_t speed = packet[3];
 
-  dumpSpeed = -((float) speed) / 100.0;
+  dumpSpeed = ((float) speed) / 100.0;
   SendMotorCommandAck();
   SetSparkMaxEnabled(DUMP_MOTOR_CAN_ID, true);
 }

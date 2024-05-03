@@ -53,7 +53,7 @@ void Communicator::processControllerState(uint8_t* data)
     rbState.frMotor = data[3];
     rbState.brMotor = data[3];
 
-    uint8_t digDriveSpeed = 50;
+    uint8_t digDriveSpeed = 30;
     uint8_t intakeSpeed = 50;
 
     if(data[5]&0x04) {
@@ -68,22 +68,22 @@ void Communicator::processControllerState(uint8_t* data)
         rbState.brMotor = -digDriveSpeed;
     }
 
-    int8_t intakeLocUp = ((data[6]&0b00010000)>0)*40;
-    int8_t intakeLocDown = ((data[6]&0b00100000)>0)*40;
+    int8_t intakeLocUp = ((data[6]&0b00010000)>0)*15;
+    int8_t intakeLocDown = ((data[6]&0b00100000)>0)*65;
 
     rbState.intakeLocation = intakeLocUp - intakeLocDown;
 
-    int8_t intake = ((data[5]&0x40)>0)*20;
+    int8_t intake = ((data[5]&0x40)>0)*100;
 
-    int8_t dump = ((data[5]&0x80)>0)*20;
+    int8_t dump = ((data[5]&0x80)>0)*100;
 
-    if(data[7] > 20) {
-        dump = 
-    }
+    // if(data[7] > 20) {
+    //     dump = 
+    // }
 
-    if(data[8] > 20) {
-        intake = 
-    }
+    // if(data[8] > 20) {
+    //     intake = 
+    // }
 
     rbState.dumpMotor = dump;
     rbState.intakeMotor = intake;
