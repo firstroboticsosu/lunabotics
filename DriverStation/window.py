@@ -44,6 +44,7 @@ class Window:
 
             if event.type == QUIT:
                 print("User closed window... shutting down!")
+                pygame.display.set_mode(self.window_size, flags=pygame.HIDDEN)
                 state.shutdown()
             elif event.type == VIDEORESIZE:
                 self.window_size = event.w, event.h

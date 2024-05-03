@@ -56,7 +56,7 @@ class Gui:
             imgui.same_line(spacing=50)
 
             with imgui.begin_group():
-                self.led_indicator("JOYSTICK", False)
+                self.led_indicator("JOYSTICK", state.get_gamepad().is_connected())
                 self.led_indicator(" ENABLED", state.is_robot_enabled())
             imgui.end_child()
 
@@ -98,13 +98,51 @@ class Gui:
             imgui.text_wrapped("This text will wrap around.\n[INFO] this is a log message")
             imgui.end_child()
         
-    def draw_telemetry(self):
+    def draw_telemetry(self, ds_state):
         imgui.text("Intake height: XXX")
         imgui.text("Intake speed: XXX")
         imgui.text("Intake torque: XXX")
         imgui.text("")
         imgui.text("Dump speed: XXX")
         imgui.text("Dump torque: XXX")
+        imgui.text("")
+
+        gamepad = ds_state.get_gamepad()
+        left_stick = gamepad.get_left_stick()
+        right_stick = gamepad.get_right_stick()
+        left_trigger = gamepad.get_left_trigger()
+        right_trigger = gamepad.get_right_trigger()
+
+        imgui.text("Gamepad:")
+        imgui.text(f"Left Stick: {left_stick[0]:.2f}, {left_stick[1]:.2f}")
+        imgui.text(f"Right Stick: {right_stick[0]:.2f}, {right_stick[1]:.2f}")
+        imgui.text(f"Left Trigger: {left_trigger:.2f}")
+        imgui.text(f"Right Trigger: {right_trigger:.2f}")
+
+        imgui.text("")
+
+        with imgui.begin_group():
+            imgui.text("Buttons")
+            self.led_indicator("A", gamepad.get_button_a())
+            self.led_indicator("B", gamepad.get_button_b())
+            self.led_indicator("X", gamepad.get_button_x())
+            self.led_indicator("Y", gamepad.get_button_y())
+
+        imgui.same_line(100)
+
+        with imgui.begin_group():
+            imgui.text(" DPAD")
+            self.led_indicator("   UP", gamepad.get_dpad_up())
+            self.led_indicator(" DOWN", gamepad.get_dpad_down())
+            self.led_indicator(" LEFT", gamepad.get_dpad_left())
+            self.led_indicator("RIGHT", gamepad.get_dpad_right())
+
+        imgui.same_line(230)
+        with imgui.begin_group():
+            imgui.text("BUMPERS")
+            self.led_indicator("  LEFT", gamepad.get_left_bumper())
+            self.led_indicator(" RIGHT", gamepad.get_right_bumper())
+
 
     def draw_confirmation_box(self, window_width, window_height):
         if self.current_action != None:
@@ -137,7 +175,7 @@ class Gui:
         imgui.set_next_window_size(TELEMETRY_PANEL_WIDTH, window_height - CONTROL_BAR_HEIGHT)
         imgui.set_next_window_position(0, 0)
         imgui.begin("Telemetry", flags=imgui.WINDOW_NO_COLLAPSE | imgui.WINDOW_NO_RESIZE | imgui.WINDOW_NO_MOVE)
-        self.draw_telemetry()
+        self.draw_telemetry(state)
         imgui.end()
 
         self.draw_confirmation_box(window_width, window_height)

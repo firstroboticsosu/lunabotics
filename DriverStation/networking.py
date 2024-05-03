@@ -5,20 +5,26 @@ import pygame
 import struct
 import queue
 
-TCP_IP = '192.168.0.10' 
+# TCP_IP = '192.168.0.10' 
+TCP_IP = 'localhost'
 TCP_PORT = 2000
+TIMEOUT=1.0
 
 class ConnectionManager: 
     def __init__(self): 
         self.network_thread = threading.Thread(target=self.run)
         self.connected = False
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.settimeout(TIMEOUT)
         self.tx_queue = queue.Queue()
 
         self.network_thread.start()
 
     def shutdown(self):
+        print("Shutting down networking...")
         self.running = False
+        self.network_thread.join()
+        print("Shutdown network thread")
 
     def run(self):
         self.running = True
@@ -48,13 +54,13 @@ class ConnectionManager:
         
         while self.running:
             if self.tx_queue.qsize() > 0:
-                msg = self.tx_queue.get()
+                msg = self.tx_queue.get_nowait()
 
                 if msg is not None:
                     self.socket.send(msg)
                     self.last_packet = time.time()
             else:
-                time.sleep(0.01)
+                time.sleep(0.1)
 
     def is_connected(self):
         return self.connected
