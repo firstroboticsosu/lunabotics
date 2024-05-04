@@ -32,6 +32,7 @@ public:
     void sendDumpMotor(int8_t dumpMotorSpeed);
     void sendDeployControl(int8_t angle);
     void sendHeartbeat();
+    bool isConnected();
 
 
     int sendCurrentQueue();

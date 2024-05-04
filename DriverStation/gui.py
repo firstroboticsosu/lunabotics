@@ -51,7 +51,7 @@ class Gui:
             )
             with imgui.begin_group():
                 self.led_indicator(" COMMS", state.is_robot_connected())
-                self.led_indicator("RP2040", False)
+                self.led_indicator("RP2040", state.get_telemetry().is_rp2040_connected())
 
             imgui.same_line(spacing=50)
 

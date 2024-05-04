@@ -28,12 +28,19 @@ class RobotTelemetry:
 
     def reset(self):
         self.robot_enabled = DATA_UNKNOWN
+        self.rp2040_connected = False
 
     def set_robot_enabled(self, enabled):
         self.robot_enabled = enabled
 
     def is_robot_enabled(self):
         return self.robot_enabled
+    
+    def set_rp2040_connected(self, connected):
+        self.rp2040_connected = connected
+
+    def is_rp2040_connected(self):
+        return self.rp2040_connected
 
 class GamepadState: 
     def __init__(self):
@@ -310,6 +317,7 @@ class RobotCommunicator:
 
         if packet_type == 0x01: # Heartbeat
             ds_state.get_telemetry().set_robot_enabled(packet[1] != 0)
+            ds_state.get_telemetry().set_rp2040_connected(packet[2] != 0)
 
     def update(self, ds_state, connection: networking.ConnectionManager):
         if time.time() - self.last_gamepad_packet > 0.02:

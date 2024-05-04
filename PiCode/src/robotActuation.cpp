@@ -141,6 +141,10 @@ void RobotActuation::reciveMessageHandler()
 {
 }
 
+bool RobotActuation::isConnected() {
+    return serial.is_open();
+}
+
 void RobotActuation::enqueueMessage(SerialPacket *mess)
 {
     outgoingQueue.push(*mess);

@@ -55,10 +55,10 @@ int main() {
         dsComms.update();
         if (dsComms.isConnected()) {
             if (currentTime - lastSentDsHearbeat > DS_HEARTBEAT_RATE_MS) {
-                dsComms.sendHeartbeat(control.getRobotState().isRobotEnabled(), false);
+                dsComms.sendHeartbeat(control.getRobotState().isRobotEnabled(), rp2040.isConnected());
                 lastSentDsHearbeat = currentTime;
             }
-            
+
             if (handleDsMessages(dsComms, control)) {
                 lastDsMessageRx = getUnixTimeMs();
             } else if (currentTime - lastDsMessageRx > DS_TIMEOUT_MS) {
