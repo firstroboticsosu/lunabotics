@@ -14,4 +14,5 @@ struct RobotState {
 
     int8_t intakeMotor;
     int8_t dumpMotor;
+    bool robot_enabled;
 };

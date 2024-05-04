@@ -6,6 +6,8 @@ import time
 import pygame
 import struct
 
+DATA_UNKNOWN="---"
+
 class LinkageState(Enum):
     RETRACTED = 0
     HEIGHT_CONTROL = 1,
@@ -18,6 +20,19 @@ class LinkageState(Enum):
             return "Height Control"
         elif(self == self.MANUAL):
             return "Manual"
+
+class RobotTelemetry: 
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self.robot_enabled = DATA_UNKNOWN
+
+    def set_robot_enabled(self, enabled):
+        self.robot_enabled = enabled
+
+    def is_robot_enabled(self):
+        return self.robot_enabled
 
 class GamepadState: 
     def __init__(self):
@@ -120,15 +135,22 @@ class DriverStationState:
         self.robot_enabled = False
         self.linkage_state = LinkageState.RETRACTED
         self.gamepad = GamepadState()
+        self.telemetry = RobotTelemetry()
 
     def set_robot_connected(self, connected):
         self.robot_connected = connected
+
+        if not connected:
+            self.telemetry.reset()
     
     def is_robot_connected(self):
         return self.robot_connected
     
     def get_gamepad(self):
         return self.gamepad
+    
+    def get_telemetry(self):
+        return self.telemetry
 
     def enable_robot(self):
         self.robot_enabled = True
@@ -171,18 +193,18 @@ class DriverStationState:
         self.running = False
 
 class DriverStationInput:
-    def __init__(self, ds_state, connection_manager):
+    def __init__(self, ds_state):
         self.joystick = None
-        self.update(ds_state, connection_manager)
+        self.update(ds_state)
 
     def connect_joystick(self):
         if pygame.joystick.get_count() > 0:
             self.joystick = pygame.joystick.Joystick(0)
 
-    def update(self, ds_state, connection_manager):
+    def update(self, ds_state : DriverStationState):
         if self.joystick is None:
             self.connect_joystick()
-        elif pygame.joystick.get_count() is 0:
+        elif pygame.joystick.get_count() == 0:
             self.joystick.quit()
             self.joystick = None
             
@@ -219,6 +241,68 @@ class DriverStationInput:
         else:
             gamepad_state.set_connected(False)
 
+class RobotCommunicator:
+    def __init__(self):
+        self.last_gamepad_packet = 0
+        self.last_heartbeat = 0
+        pass
+
+    def send_gamepad_packet(self, gamepad : GamepadState, connection : networking.ConnectionManager):
+        button_set1 = 0
+        button_set2 = 0
+
+        # bitset1 |= self.joystick.get_button(8) << 0  # Left Stick Press
+        # bitset1 |= self.joystick.get_button(9) << 1  # Right Stick Press
+        button_set1 |= gamepad.get_dpad_up() << 2  # D-pad up
+        button_set1 |= gamepad.get_dpad_down() << 3  # D-pad down
+        button_set1 |= gamepad.get_dpad_left() << 4  # D-pad right
+        button_set1 |= gamepad.get_dpad_right() << 5  # D-pad left
+        button_set1 |= gamepad.get_button_a() << 6  # A button
+        button_set1 |= gamepad.get_button_b() << 7  # B button
+
+        packet = struct.pack(
+                    '!bbbbbBBbbbb',
+                    0x01,  # Message type for controller status
+                    int(gamepad.get_left_stick()[1] * 100),
+                    int(gamepad.get_left_stick()[0] * 100),
+                    int(gamepad.get_right_stick()[1] * 100),
+                    int(gamepad.get_right_stick()[0] * 100),
+                    button_set1,
+                    button_set2,
+                    int(gamepad.get_left_trigger() * 100),
+                    int(gamepad.get_right_trigger() * 100), 0, 0,  # Future usage placeholders
+                )
+        
+        connection.send_packet(packet)
+
+        self.last_gamepad_packet = time.time()
+
+    def send_heartbeat(self, ds_state: DriverStationState, connection):
+        packet = struct.pack(
+            '!bbbbbbbbbbb',
+            0x01, 
+            ds_state.is_robot_enabled(), 0, 0, 0, 0, 0, 0, 0, 0, 0
+        )
+        connection.send_packet(packet)
+        self.last_heartbeat = time.time()
+
+    def handle_packet(self, packet, ds_state : DriverStationState):
+        packet_type = packet[0]
+
+        if packet_type == 0x01: # Heartbeat
+            ds_state.get_telemetry().set_robot_enabled(packet[1] != 0)
+
+    def update(self, ds_state, connection: networking.ConnectionManager):
+        if time.time() - self.last_gamepad_packet > 5.0:
+            self.send_gamepad_packet(ds_state.get_gamepad(), connection)
+
+        if time.time() - self.last_heartbeat > 0.1:
+            self.send_heartbeat(ds_state, connection)
+
+        packet = connection.get_next_packet()
+        while packet is not None:
+            self.handle_packet(packet, ds_state)
+            packet = connection.get_next_packet()
 
 class DriverStation:
     def __init__(self):
@@ -226,66 +310,17 @@ class DriverStation:
         self.gui = gui.Gui()
         self.state = DriverStationState()
         self.connection_manager = networking.ConnectionManager()
-        self.input = DriverStationInput(self.state, self.connection_manager)
-
-    def get_button_bitset(self):
-        """Generate the bitset for buttons according to the specified mapping."""
-        x, y = self.joystick.get_hat(0)
-
-        if y > 0.5:
-            print("dpad up")
-
-        bitset = 0
-        bitset |= self.joystick.get_button(8) << 0  # Left Stick Press
-        bitset |= self.joystick.get_button(9) << 1  # Right Stick Press
-        bitset |= (y > 0.5) << 2  # D-pad up
-        bitset |= (y < -0.5) << 3  # D-pad down
-        bitset |= (x > 0.5) << 4  # D-pad right
-        bitset |= (x < -0.5) << 5  # D-pad left
-        bitset |= self.joystick.get_button(0) << 6  # A button
-        bitset |= self.joystick.get_button(1) << 7  # B button
-        return bitset
-
-    def get_button_bitset2(self):
-        """Generate the second bitset for buttons according to the specified mapping."""
-        bitset = 0
-        bitset |= self.joystick.get_button(2) << 0  # X button
-        bitset |= self.joystick.get_button(3) << 1  # Y button
-        bitset |= self.joystick.get_axis(2)>10 << 2  # Left trigger, scaled down
-        bitset |= self.joystick.get_axis(5)>10 << 3  # Right Trigger, scaled down
-        bitset |= self.joystick.get_button(4) << 4  # Left Bumper
-        bitset |= self.joystick.get_button(5) << 5  # Right Bumper
-        bitset |= self.joystick.get_button(7) << 6  # Start button
-        bitset |= self.joystick.get_button(6) << 7  # Select button
-        return bitset
-
-    def send_packet(self):
-        button_set_1 = self.get_button_bitset()
-        button_set_2 = self.get_button_bitset2()
-
-        packet = struct.pack(
-                    '!bbbbbBBbbbb',
-                    0x01,  # Message type for controller status
-                    int(-self.joystick.get_axis(1)*100),
-                    int(-self.joystick.get_axis(0)*100),
-                    int(-self.joystick.get_axis(4)*100),
-                    int(-self.joystick.get_axis(3)*100),
-                    button_set_1,
-                    button_set_2,
-                    int((self.joystick.get_axis(5)+1)*50),
-                    int((self.joystick.get_axis(2)+1)*50), 0, 0,  # Future usage placeholders
-                )
-        if self.state.is_robot_connected():        
-            print("Packet:", packet.hex(' '))
-            self.connection_manager.send_packet(packet)
-
-        self.last_packet = time.time()
+        self.input = DriverStationInput(self.state)
+        self.robot_communicator = RobotCommunicator()
 
     def run(self):
-        self.last_packet = time.time()
         while self.state.running:             
             self.state.set_robot_connected(self.connection_manager.is_connected())
-            self.input.update(self.state, self.connection_manager)
+
+            if(self.connection_manager.is_connected()):
+                self.robot_communicator.update(self.state, self.connection_manager)
+
+            self.input.update(self.state)
             self.window.render(self.state, self.gui)
             self.window.process_events(self.state)
 

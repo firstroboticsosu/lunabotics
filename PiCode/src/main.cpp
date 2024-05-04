@@ -27,9 +27,10 @@ int main()
   int lastDump = get_time_ms();
   int lastIntake = get_time_ms();
   int lastDeploy = get_time_ms();
+  int lastDsHeartbeat = get_time_ms();
+
   while(true){
     int currentTime = get_time_ms();
-    std::cout << std::endl;
     c->readIncomingPacket();
     RobotState rbstate = c->getRobotState();
 
@@ -66,6 +67,11 @@ int main()
       rbActuator->sendHeartbeat();
       std::cout << "Send Heart beat" << std::endl;
       lastTime = currentTime;
+    }
+
+    if(currentTime - lastDsHeartbeat > 500) {
+      c->sendHeartbeat();
+      lastDsHeartbeat = currentTime;
     }
 
     rbActuator->sendCurrentQueue();

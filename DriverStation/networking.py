@@ -15,8 +15,8 @@ class ConnectionManager:
         self.network_thread = threading.Thread(target=self.run)
         self.connected = False
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.settimeout(TIMEOUT)
         self.tx_queue = queue.Queue()
+        self.rx_queue = queue.Queue()
 
         self.network_thread.start()
 
@@ -26,18 +26,35 @@ class ConnectionManager:
         self.network_thread.join()
         print("Shutdown network thread")
 
+    def get_next_packet(self):
+        if self.rx_queue.qsize() < 11:
+            return None
+        
+        packet = []
+
+        for _ in range(11):
+            packet.append(self.rx_queue.get())
+
+        return packet
+
+
     def run(self):
         self.running = True
         while self.running:
             self.connected = False
             try:
+                self.socket.setblocking(False)
                 self.socket.connect((TCP_IP, TCP_PORT))
                 self.handle_connection()
                 break
-            except: 
-                self.connected = False
-                print("Failed to connect. Sleep 1 second...")
-                time.sleep(1)
+            except socket.error as e: 
+                if e.errno == 106: # endpoint already connected
+                    self.socket.close()
+                    self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                elif e.errno != 115: # Errno 115 = operation in progress
+                    self.connected = False
+                    print(f"Failed to connect: {e}. Sleep 1 second...")
+                    time.sleep(1)
 
     def send_packet(self, packet):
         self.tx_queue.put(packet)
@@ -46,13 +63,30 @@ class ConnectionManager:
         with self.tx_queue.mutex:
             self.tx_queue.queue.clear()
 
+    def read_data(self):
+        try:
+            data = self.socket.recv(128)
+            for i in range(len(data)):
+                self.rx_queue.put(data[i])
+
+            self.last_rx_time = time.time()
+        except socket.error:
+            pass
+
     def handle_connection(self):
         self.connected = True
         self.last_packet = time.time()
+        self.last_rx_time = time.time()
         self.clear_tx_queue()
         print("connected!") 
         
         while self.running:
+            self.read_data()
+
+            if time.time() - self.last_rx_time > 1.0:
+                print("No packets received for one second. Killing connection")
+                break
+
             if self.tx_queue.qsize() > 0:
                 msg = self.tx_queue.get_nowait()
 

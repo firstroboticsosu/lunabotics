@@ -10,10 +10,10 @@ Communicator::Communicator(): io(), socket(io),
 
 void Communicator::readIncomingPacket()
 {
-    asio::read(socket, asio::buffer(data, MESS_0x01_LEN));
-    //asio::read_until( socket, incomingBuffer, "/n" );
-    proccesMessage();
-    
+    if(socket.available() > MESS_0x01_LEN) {
+        asio::read(socket, asio::buffer(data, MESS_0x01_LEN));
+        proccesMessage();
+    }    
 }
 
 void Communicator::send(asio::ip::tcp::socket &socket, const std::string &message)
@@ -24,25 +24,32 @@ void Communicator::send(asio::ip::tcp::socket &socket, const std::string &messag
 
 RobotState Communicator::getRobotState()
 {
-    //const std::lock_guard<std::mutex> lock(mutex);
     return rbState;
 }
 
 void Communicator::proccesMessage()
 {
-    std::cout << "Recived from DS!" << std::endl;
-    // for (int i = 0; i < MESS_0x01_LEN; i++)
-    // {
-    //     std::cout <<std::hex<< unsigned(data[i])<<" ";
-    // }
-    // std::cout << std::endl;
 
-    if(data[0] == 0x01)
+    if(data[0] == 0x01) {
+        std::cout << "Recived Heartbeat from DS!" << std::endl;
+        rbState.robot_enabled = data[1] != 0;
+        std::cout << "Robot Enabled: " << (rbState.robot_enabled ? "Yes" : "No") << std::endl;
+    } else if(data[0] == 0x02)
     {
+        std::cout << "Recived controller state from DS!" << std::endl;
         processControllerState(data);
         incomingBuffer.consume(MESS_0x01_LEN);
+    } else {
+        std::cout << "Received unknown message type from DS!" << data[0] << std::endl;
     }
+}
 
+void Communicator::sendHeartbeat() {
+    uint8_t packet[11] = {0};
+    packet[0] = 0x01;
+    packet[1] = rbState.robot_enabled;
+    
+    asio::write(socket, asio::buffer(packet, 11));
 }
 
 void Communicator::processControllerState(uint8_t* data)

@@ -16,6 +16,7 @@ public:
     Communicator();
     void readIncomingPacket();
     void send(asio::ip::tcp::socket & socket, const std::string& message);
+    void sendHeartbeat();
     RobotState getRobotState();
     
 

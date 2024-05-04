@@ -6,14 +6,21 @@
  * @param port The port the adafruit feather is expected on
  * @param baud_rate Baud_rate for the communication (should be 115200 per specification)
  */
-RobotActuation::RobotActuation(std::string port, unsigned int baud_rate) : io(), serial(io, port)
+RobotActuation::RobotActuation(std::string port, unsigned int baud_rate) : io(), serial(io)
 {
-    serial.set_option(asio::serial_port_base::baud_rate(baud_rate));
+    try
+    {
+        serial.open(port); 
+        serial.set_option(asio::serial_port_base::baud_rate(baud_rate));
+    }
+    catch (asio::system_error &e)
+    {
+        std::cout << "Failed to open serial port: " << e.what() << std::endl;
+    }
 }
 
 void RobotActuation::readNextMessage()
 {
-
 }
 
 void RobotActuation::sendDriveMotors(int8_t frontLeftMotor, int8_t frontRightMotor, int8_t backLeftMotor, int8_t backRightMotor)
@@ -78,18 +85,17 @@ int RobotActuation::sendCurrentQueue()
     {
         serialTransmit = true;
         serial.async_write_some(asio::buffer(outgoingBytes, SERIAL_MES_LEN),
-         [this](const asio::error_code& error, std::size_t bytes_transferred) 
-         {
-            sendBytesHandler(error, bytes_transferred);
-         }
-        );
+                                [this](const asio::error_code &error, std::size_t bytes_transferred)
+                                {
+                                    sendBytesHandler(error, bytes_transferred);
+                                });
     }
     if (!byteQueueFull && !serialTransmit && !outgoingQueue.empty())
     {
-        SerialPacket * packet = &outgoingQueue.front();
+        SerialPacket *packet = &outgoingQueue.front();
         addChecksum(packet);
 
-        // std::cout << "sending: ";   
+        // std::cout << "sending: ";
         // for (int i = 0; i < 13; i++)
         // {
         //     std::cout << +packet->packet[i] << " ";
@@ -104,7 +110,7 @@ int RobotActuation::sendCurrentQueue()
     return 0;
 }
 
-void RobotActuation::sendBytesHandler(const asio::error_code& error, std::size_t bytes_transferred)
+void RobotActuation::sendBytesHandler(const asio::error_code &error, std::size_t bytes_transferred)
 {
     std::cout << "Sent " << unsigned(bytes_transferred) << " bytes" << std::endl;
     std::cout << "Error code: " << error.value() << std::endl;
@@ -126,14 +132,13 @@ void RobotActuation::run()
     if (io.stopped())
     {
         io.reset();
-    //io.restart();
+        // io.restart();
     }
     io.poll();
 }
 
 void RobotActuation::reciveMessageHandler()
 {
-
 }
 
 void RobotActuation::enqueueMessage(SerialPacket *mess)
@@ -141,33 +146,35 @@ void RobotActuation::enqueueMessage(SerialPacket *mess)
     outgoingQueue.push(*mess);
 }
 
-void RobotActuation::addChecksum(SerialPacket * packet)
+void RobotActuation::addChecksum(SerialPacket *packet)
 {
-    uint8_t * ptr = packet->packet;
-    uint16_t checksum= fletcher16(ptr, SERIAL_MES_LEN-2);
+    uint8_t *ptr = packet->packet;
+    uint16_t checksum = fletcher16(ptr, SERIAL_MES_LEN - 2);
     packet->portions.checksumHigh = (checksum >> 8) & 0xff;
-    packet->portions.checksumLow = checksum & 0xff; 
+    packet->portions.checksumLow = checksum & 0xff;
 }
 
-uint16_t RobotActuation::fletcher16(const uint8_t *data, size_t len) {
-	uint32_t c0, c1;
+uint16_t RobotActuation::fletcher16(const uint8_t *data, size_t len)
+{
+    uint32_t c0, c1;
 
-	/*  Found by solving for c1 overflow: */
-	/* n > 0 and n * (n+1) / 2 * (2^8-1) < (2^32-1). */
-	for (c0 = c1 = 0; len > 0; ) {
-		size_t blocklen = len;
-		if (blocklen > 5802) {
-			blocklen = 5802;
-		}
-		len -= blocklen;
-		do {
-			c0 = c0 + *data++;
-			c1 = c1 + c0;
-		} while (--blocklen);
-		c0 = c0 % 255;
-		c1 = c1 % 255;
-   }
-   return (c1 << 8 | c0);
+    /*  Found by solving for c1 overflow: */
+    /* n > 0 and n * (n+1) / 2 * (2^8-1) < (2^32-1). */
+    for (c0 = c1 = 0; len > 0;)
+    {
+        size_t blocklen = len;
+        if (blocklen > 5802)
+        {
+            blocklen = 5802;
+        }
+        len -= blocklen;
+        do
+        {
+            c0 = c0 + *data++;
+            c1 = c1 + c0;
+        } while (--blocklen);
+        c0 = c0 % 255;
+        c1 = c1 % 255;
+    }
+    return (c1 << 8 | c0);
 }
-
-

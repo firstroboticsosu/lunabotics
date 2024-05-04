@@ -99,6 +99,9 @@ class Gui:
             imgui.end_child()
         
     def draw_telemetry(self, ds_state):
+        telemetry = ds_state.get_telemetry()
+        imgui.text(f"Robot enabled: {telemetry.is_robot_enabled()}")
+        imgui.text("")
         imgui.text("Intake height: XXX")
         imgui.text("Intake speed: XXX")
         imgui.text("Intake torque: XXX")
