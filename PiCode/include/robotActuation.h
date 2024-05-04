@@ -30,7 +30,7 @@ public:
     void sendDriveMotors(int8_t frontLeftMotor, int8_t frontRightMotor, int8_t backLeftMotor, int8_t backRightMotor);
     void sendIntakeMotor(int8_t intakeMotorSpeed);
     void sendDumpMotor(int8_t dumpMotorSpeed);
-    void sendIntakePosition(int8_t angle);
+    void sendDeployControl(int8_t angle);
     void sendHeartbeat();
 
 

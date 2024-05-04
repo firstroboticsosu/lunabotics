@@ -1,92 +1,194 @@
 #include "robotControl.h"
+#include "util.h"
 
-int RobotControl::robotRunStateMachine()
-{
-    while(running) {
-        switch (currentState)
-        {
-            case 0:
-                runStartupState();
-                break;
-            case 1:
-                runStopState();
-                break;
-            case 2:
-                runTeleopState();
-                break;
-            case 3:
-                runAutoState();
-            default:
-                runPanicState();
+#define HEARTBEAT_RATE_MS 1000
+#define MOTOR_UPDATE_RATE_MS 1000
+#define INTAKE_SPEED 100
+#define DUMP_SPEED 100
+#define CRAWL_SPEED 40
+#define DEPLOY_LOWER_SPEED -15
+#define DEPLOY_RAISE_SPEED 65
+#define TRIGGER_DEADZONE 10 
 
-        }
-    }
-    return 1;
+void RobotControl::sendStateToRP2040(RobotActuation *rp2040) {
+  uint64_t currentTime = getUnixTimeMs();
+
+  if (currentTime - this->lastHeartbeat > HEARTBEAT_RATE_MS) {
+    std::cout << "Send Heartbeat to RP2040" << std::endl;
+    rp2040->sendHeartbeat();
+    lastHeartbeat = currentTime;
+  }
+
+  bool frontLeftChange = currentState.getDriveFrontLeft() != lastStateSent.getDriveFrontLeft();
+  bool frontRightChange = currentState.getDriveFrontLeft() != lastStateSent.getDriveFrontLeft();
+  bool backLeftChange = currentState.getDriveFrontLeft() != lastStateSent.getDriveFrontLeft();
+  bool backRightChange = currentState.getDriveFrontLeft() != lastStateSent.getDriveFrontLeft();
+
+  if (frontLeftChange || frontRightChange || backLeftChange || backRightChange ||
+      currentTime - this->lastDriveCmd > MOTOR_UPDATE_RATE_MS) {
+    std::cout << "Send Drive to RP2040 (FL=" << +currentState.getDriveFrontLeft() << ", FR=" << +currentState.getDriveFrontLeft()
+              << ", BL=" << +currentState.getDriveFrontLeft() << ", BR=" << +currentState.getDriveFrontLeft() << ")" << std::endl;
+    rp2040->sendDriveMotors(currentState.getDriveFrontLeft(), currentState.getDriveFrontLeft(), currentState.getDriveFrontLeft(), currentState.getDriveFrontLeft());
+    lastDriveCmd = currentTime;
+  }
+
+  if(currentState.getIntake() != lastStateSent.getIntake() || currentTime - lastIntakeCmd > MOTOR_UPDATE_RATE_MS) {
+    std::cout << "Send Intake to RP2040: " << +currentState.getIntake() << std::endl; 
+    rp2040->sendIntakeMotor(currentState.getIntake());
+    lastIntakeCmd = currentTime;
+  }
+
+  if(currentState.getDump() != lastStateSent.getDump() || currentTime - lastDumpCmd > MOTOR_UPDATE_RATE_MS) {
+    std::cout << "Send Dump to RP2040: " << +currentState.getDump() << std::endl; 
+    rp2040->sendDumpMotor(currentState.getDump());
+    lastDumpCmd = currentTime;
+  }
+
+  if(currentState.getDeploy() != lastStateSent.getDeploy() || currentTime - lastDeployCmd > MOTOR_UPDATE_RATE_MS) {
+    std::cout << "Send Deploy to RP2040: " << +currentState.getDeploy() << std::endl; 
+    rp2040->sendDeployControl(currentState.getDeploy());
+    lastDeployCmd = currentTime;
+  }
+
+  lastStateSent = currentState;
 }
 
-//Heart beat every seond
+void RobotControl::handleGamepadPacket(GamepadPacket packet) {
+  // Drive
+  int leftDriveSpeed = packet.getLeftStickY();
+  int rightDriveSpeed = packet.getRightStickY();
+  if(packet.isDpadUp()) {
+    leftDriveSpeed = CRAWL_SPEED;
+    rightDriveSpeed = CRAWL_SPEED;
+  } else if (packet.isDpadDown()) {
+    leftDriveSpeed = -CRAWL_SPEED;
+    rightDriveSpeed = -CRAWL_SPEED;
+  }
+  currentState.setDrive(leftDriveSpeed, rightDriveSpeed);
 
-int RobotControl::robotStartup()
-{
-    return robotRunStateMachine();
+  // Intake
+  if(packet.isButtonAPressed()) {
+    currentState.setIntake(INTAKE_SPEED);
+  } else {
+    currentState.setIntake(0);
+  }
+
+  // Dump
+  if(packet.isButtonBPressed()) {
+    currentState.setDump(DUMP_SPEED);
+  } else {
+    currentState.setDump(0);
+  }
+
+  // Deploy
+  int8_t deploySpeed = 0;
+
+  if(packet.isLeftBumperPressed()) {
+    deploySpeed = DEPLOY_LOWER_SPEED;
+  } else if(packet.issRightBumperPressed()) {
+    deploySpeed = DEPLOY_RAISE_SPEED;
+  } else if(packet.getLeftTrigger() > TRIGGER_DEADZONE) {
+    deploySpeed = -packet.getLeftTrigger();
+  } else if(packet.getRightTrigger() > TRIGGER_DEADZONE) {
+    deploySpeed = packet.getRightTrigger();
+  }
+  
+  currentState.setDeploy(deploySpeed);
 }
 
-int RobotControl::runStartupState()
-{
-    return 1;
+void RobotControl::handleDsHeartbeatPacket(DsHeartbeatPacket packet) {
+  currentState.setEnabled(packet.IsRobotEnabled());
 }
 
-
-int RobotControl::runAutoState()
-{
-    currentState = -1;
-    return 1;
+RobotState& RobotControl::getRobotState() {
+  return currentState;
 }
 
-int RobotControl::runStopState()
-{
-    setDriveValues(0,0,0,0);
-    setIntakeSpeed(0);
-    setDumpSpeed(0);
-    setIntakePosition(trueState.intakeLocation);
+// int RobotControl::robotRunStateMachine()
+// {
+//     while(running) {
+//         switch (currentState)
+//         {
+//             case 0:
+//                 runStartupState();
+//                 break;
+//             case 1:
+//                 runStopState();
+//                 break;
+//             case 2:
+//                 runTeleopState();
+//                 break;
+//             case 3:
+//                 runAutoState();
+//             default:
+//                 runPanicState();
 
+//         }
+//     }
+//     return 1;
+// }
 
-    return 1;
-}
+// //Heart beat every seond
 
-int RobotControl::runTeleopState()
-{
-    return 1;
-}
+// int RobotControl::robotStartup()
+// {
+//     return robotRunStateMachine();
+// }
 
-int RobotControl::runPanicState()
-{
-    // Robot is paniced!
-    setDriveValues(0,0,0,0);
-    setIntakeSpeed(0);
-    setDumpSpeed(0);
-    setIntakePosition(trueState.intakeLocation);
-    currentState = -1;
+// int RobotControl::runStartupState()
+// {
+//     return 1;
+// }
 
-    return -1;
-}
+// int RobotControl::runAutoState()
+// {
+//     currentState = -1;
+//     return 1;
+// }
 
-int RobotControl::setDumpSpeed(int8_t val)
-{
-    return 0;
-}
+// int RobotControl::runStopState()
+// {
+//     setDriveValues(0,0,0,0);
+//     setIntakeSpeed(0);
+//     setDumpSpeed(0);
+//     setIntakePosition(trueState.intakeLocation);
 
-int RobotControl::setIntakePosition(int8_t val)
-{
-    return 0;
-}
+//     return 1;
+// }
 
-int RobotControl::setIntakeSpeed(int8_t val)
-{
-    return 0;
-}
+// int RobotControl::runTeleopState()
+// {
+//     return 1;
+// }
 
-int RobotControl::setDriveValues(int8_t flVal, int8_t frVal, int8_t blVal, int8_t brVal)
-{
-    return 0;
-}
+// int RobotControl::runPanicState()
+// {
+//     // Robot is paniced!
+//     setDriveValues(0,0,0,0);
+//     setIntakeSpeed(0);
+//     setDumpSpeed(0);
+//     setIntakePosition(trueState.intakeLocation);
+//     currentState = -1;
+
+//     return -1;
+// }
+
+// int RobotControl::setDumpSpeed(int8_t val)
+// {
+//     return 0;
+// }
+
+// int RobotControl::setIntakePosition(int8_t val)
+// {
+//     return 0;
+// }
+
+// int RobotControl::setIntakeSpeed(int8_t val)
+// {
+//     return 0;
+// }
+
+// int RobotControl::setDriveValues(int8_t flVal, int8_t frVal, int8_t blVal, int8_t brVal)
+// {
+//     return 0;
+// }

@@ -1,54 +1,49 @@
 #pragma once
-#include "communicator.h"
+#include "driverStation.h"
 #include "robotActuation.h"
-#include "structs.h"
-
-
-
+#include "robotState.h"
 
 class RobotControl{
 private:
-    double batteryVoltage;
-    //Communicator* communicator;
+    RobotState currentState;
+    RobotState lastStateSent;
 
-    RobotActuation* robotActuation;
-
-    RobotState desiedState;
-    RobotState trueState;
-
-
-    /**
-     * @brief Holds the state the robot is currently in
-     *   0 = robotStartup
-     *   1 = stopState
-     *   2 = teleopState
-     *   3 = autoState (Not yet defined)
-     *   -1 = panic!
-     */
-    int currentState;
-    bool running;
+    // Variables to keep track of how long since we have sent something to the RP2040
+    uint64_t lastHeartbeat = 0;
+    uint64_t lastDriveCmd = 0;
+    uint64_t lastDumpCmd = 0;
+    uint64_t lastIntakeCmd = 0;
+    uint64_t lastDeployCmd = 0;
 
 public:
 
-    int robotStartup();
+    void sendStateToRP2040(RobotActuation *rp2040);
 
-    int robotRunStateMachine();
+    void handleGamepadPacket(GamepadPacket packet);
 
-    int runStartupState();
+    void handleDsHeartbeatPacket(DsHeartbeatPacket packet);
 
-    int runStopState();
+    RobotState& getRobotState();
 
-    int runTeleopState();
+    // int robotStartup();
 
-    int runAutoState();
+    // int robotRunStateMachine();
 
-    int runPanicState();
+    // int runStartupState();
 
-    int setDriveValues(int8_t flVal, int8_t frVal, int8_t blVal, int8_t brVal);
+    // int runStopState();
 
-    int setIntakeSpeed(int8_t val);
+    // int runTeleopState();
 
-    int setDumpSpeed(int8_t val); 
+    // int runAutoState();
 
-    int setIntakePosition(int8_t val);
+    // int runPanicState();
+
+    // int setDriveValues(int8_t flVal, int8_t frVal, int8_t blVal, int8_t brVal);
+
+    // int setIntakeSpeed(int8_t val);
+
+    // int setDumpSpeed(int8_t val); 
+
+    // int setIntakePosition(int8_t val);
 };

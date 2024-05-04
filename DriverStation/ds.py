@@ -7,6 +7,7 @@ import pygame
 import struct
 
 DATA_UNKNOWN="---"
+JOYSTICK_DEADZONE=0.1
 
 class LinkageState(Enum):
     RETRACTED = 0
@@ -61,6 +62,15 @@ class GamepadState:
         return self.connected
 
     def set_joysticks(self, left_x, left_y, right_x, right_y):
+        if abs(left_x) < JOYSTICK_DEADZONE:
+            left_x = 0
+        if abs(left_y) < JOYSTICK_DEADZONE:
+            left_y = 0
+        if abs(right_x) < JOYSTICK_DEADZONE:
+            right_x = 0
+        if abs(right_y) < JOYSTICK_DEADZONE:
+            right_y = 0
+
         self.left_stick_x = left_x
         self.left_stick_y = left_y
         self.right_stick_x = right_x
@@ -260,9 +270,18 @@ class RobotCommunicator:
         button_set1 |= gamepad.get_button_a() << 6  # A button
         button_set1 |= gamepad.get_button_b() << 7  # B button
 
+        button_set2 |= gamepad.get_button_x() << 0  # X button
+        button_set2 |= gamepad.get_button_y() << 1  # Y button
+        # button_set2 |= joystick.get_axis(2)>10 << 2  # Left trigger, scaled down
+        # button_set2 |= joystick.get_axis(5)>10 << 3  # Right Trigger, scaled down
+        button_set2 |= gamepad.get_left_bumper() << 4  # Left Bumper
+        button_set2 |= gamepad.get_right_bumper() << 5  # Right Bumper
+        # button_set2 |= joystick.get_button(7) << 6  # Start button
+        # button_set2 |= joystick.get_button(6) << 7  # Select button
+
         packet = struct.pack(
                     '!bbbbbBBbbbb',
-                    0x01,  # Message type for controller status
+                    0x02,  # Message type for controller status
                     int(gamepad.get_left_stick()[1] * 100),
                     int(gamepad.get_left_stick()[0] * 100),
                     int(gamepad.get_right_stick()[1] * 100),
@@ -293,7 +312,7 @@ class RobotCommunicator:
             ds_state.get_telemetry().set_robot_enabled(packet[1] != 0)
 
     def update(self, ds_state, connection: networking.ConnectionManager):
-        if time.time() - self.last_gamepad_packet > 5.0:
+        if time.time() - self.last_gamepad_packet > 0.02:
             self.send_gamepad_packet(ds_state.get_gamepad(), connection)
 
         if time.time() - self.last_heartbeat > 0.1:
@@ -323,9 +342,6 @@ class DriverStation:
             self.input.update(self.state)
             self.window.render(self.state, self.gui)
             self.window.process_events(self.state)
-
-            # if(time.time() - self.last_packet > 0.01):
-            #     self.send_packet()
 
         self.connection_manager.shutdown()
 

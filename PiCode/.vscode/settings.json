@@ -1,5 +1,5 @@
 {
-    "C_Cpp.default.compileCommands": "/home/will/git/Lunabotics-Robot-Code-23-24/robotMainCode/PiCode/build/compile_commands.json",
+    "C_Cpp.default.compileCommands": "/home/noah/lunabotics/PiCode/build/compile_commands.json",
     "files.associations": {
         "any": "cpp",
         "array": "cpp",

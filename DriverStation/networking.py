@@ -46,7 +46,9 @@ class ConnectionManager:
                 self.socket.setblocking(False)
                 self.socket.connect((TCP_IP, TCP_PORT))
                 self.handle_connection()
-                break
+                self.socket.close()
+                self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                print("Disconnected!")
             except socket.error as e: 
                 if e.errno == 106: # endpoint already connected
                     self.socket.close()
@@ -85,7 +87,7 @@ class ConnectionManager:
 
             if time.time() - self.last_rx_time > 1.0:
                 print("No packets received for one second. Killing connection")
-                break
+                return
 
             if self.tx_queue.qsize() > 0:
                 msg = self.tx_queue.get_nowait()

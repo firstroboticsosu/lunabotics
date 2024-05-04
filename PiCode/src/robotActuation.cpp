@@ -59,7 +59,7 @@ void RobotActuation::sendDumpMotor(int8_t dumpMotorSpeed)
     enqueueMessage(&packet);
 }
 
-void RobotActuation::sendIntakePosition(int8_t angle)
+void RobotActuation::sendDeployControl(int8_t angle)
 {
     SerialPacket packet = {0xBE, 0xEF};
 
