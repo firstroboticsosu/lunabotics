@@ -51,10 +51,17 @@ public:
 
     void sendHeartbeat(bool robotEnabled, bool rp2040Connected);
     bool receiveMessage(DsPacket *packet);
+    void update();
+    void close();
+    bool isConnected();
     
-
 private:
     asio::io_service io;
     asio::ip::tcp::socket socket;
     asio::ip::tcp::acceptor acceptor;
+    bool accepting = false;
+
+    void startAccepting();
+    void acceptSocketHandler(const asio::error_code& ec);
+    void sendPacket(uint8_t *data, size_t data_len);
 };

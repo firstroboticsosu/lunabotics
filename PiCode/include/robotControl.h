@@ -23,6 +23,8 @@ public:
 
     void handleDsHeartbeatPacket(DsHeartbeatPacket packet);
 
+    void disableRobot();
+
     RobotState& getRobotState();
 
     // int robotStartup();

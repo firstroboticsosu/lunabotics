@@ -100,6 +100,10 @@ void RobotControl::handleDsHeartbeatPacket(DsHeartbeatPacket packet) {
   currentState.setEnabled(packet.IsRobotEnabled());
 }
 
+void RobotControl::disableRobot() {
+  currentState.setEnabled(false);
+}
+
 RobotState& RobotControl::getRobotState() {
   return currentState;
 }
