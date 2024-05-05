@@ -5,6 +5,7 @@ from enum import Enum
 import time
 import pygame
 import struct
+import camera
 
 DATA_UNKNOWN="---"
 JOYSTICK_DEADZONE=0.1
@@ -366,6 +367,7 @@ class DriverStation:
 
         self.connection_manager.shutdown()
 
+camera.start_camera_webserver()
 ds = DriverStation()
 print("Driver station created. Running application!")
 ds.run()
