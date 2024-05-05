@@ -9,7 +9,7 @@
 #include "util.h"
 
 #define DS_HEARTBEAT_RATE_MS 500
-#define DS_TIMEOUT_MS 1000
+#define DS_TIMEOUT_MS 3000
 
 bool shutdown_flag = false;
 
@@ -62,7 +62,7 @@ int main() {
             if (handleDsMessages(dsComms, control)) {
                 lastDsMessageRx = getUnixTimeMs();
             } else if (currentTime - lastDsMessageRx > DS_TIMEOUT_MS) {
-                std::cout << "DS has not sent a message for " << DS_TIMEOUT_MS << "ms. Killing connection" << std::endl;
+                std::cout << "DS has not sent a message for " << (currentTime - lastDsMessageRx) << "ms. Killing connection" << std::endl;
                 dsComms.close();
             }
         } else {
@@ -72,6 +72,25 @@ int main() {
 
         // RP2040 Comms
         control.sendStateToRP2040(&rp2040);
+        rp2040.run();
+
+        if(rp2040.isConnected()) {
+            SerialPacket packet = {0};
+            while(rp2040.readNextMessage(&packet)) {
+                if(packet.GetType() == SERIAL_PACKET_LOG) {
+                    std::string msg = packet.GetLogMessage();
+
+                    std::cout << "RP2040 LOG: " << msg << std::endl;
+                } else if(packet.GetType() == SERIAL_MSG_TYPE_INTAKE_POS_TLM) {
+                    int pos = packet.GetIntakePos();
+
+                    std::cout << "INTAKE POS: " << pos << std::endl;
+                    dsComms.sendIntakePos(pos);
+                } else {
+                    std::cout << "Received unknown message type from RP2040: " << +packet.GetType() << std::endl;
+                }
+            }
+        }
     }
 
     std::cout << "Shutting down robot code..." << std::endl;

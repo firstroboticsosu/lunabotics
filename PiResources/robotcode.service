@@ -1,0 +1,9 @@
+[Unit]
+Wants=network-online.target
+[Service]
+ExecStart=/home/fros/code/build/botCode
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

@@ -50,6 +50,7 @@ public:
     DsCommunicator();
 
     void sendHeartbeat(bool robotEnabled, bool rp2040Connected);
+    void sendIntakePos(int pos);
     bool receiveMessage(DsPacket *packet);
     void update();
     void close();

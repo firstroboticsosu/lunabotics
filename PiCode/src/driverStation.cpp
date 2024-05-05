@@ -76,6 +76,17 @@ void DsCommunicator::sendHeartbeat(bool robotEnabled, bool rp2040Connected) {
     sendPacket(packet, 11);
 }
 
+void DsCommunicator::sendIntakePos(int pos) {
+    uint8_t packet[11] = {0};
+    packet[0] = 0x03;
+    packet[1] = pos & 0xFF;
+    packet[2] = (pos >> 8) & 0xFF;
+    packet[3] = (pos >> 16) & 0xFF;
+    packet[4] = (pos >> 24) & 0xFF;
+
+    sendPacket(packet, 11);
+}
+
 void DsCommunicator::close() {
     std::cout << "Closing connection to DS" << std::endl;
     socket.close();
