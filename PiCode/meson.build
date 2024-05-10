@@ -24,9 +24,15 @@ asio_dep = asio.get_variable('asio_dep')
 
 thread_dep = dependency('threads')
 
+link_args = []
+if build_machine.system() == 'windows'
+  link_args += '-lwsock32' # Required by ASIO  
+endif
+
 executable(
   'botCode',
   proj_sources,
   include_directories: inc,
   dependencies: [asio_dep, thread_dep],
+  link_args: link_args
 )

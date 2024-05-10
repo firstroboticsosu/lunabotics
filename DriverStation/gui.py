@@ -101,6 +101,7 @@ class Gui:
     def draw_telemetry(self, ds_state):
         telemetry = ds_state.get_telemetry()
         imgui.text(f"Robot enabled: {telemetry.is_robot_enabled()}")
+        imgui.text(f"Robot mode: {telemetry.get_robot_mode()}")
         imgui.text("")
         imgui.text(f"Intake angle: {telemetry.get_intake_pos()}")
         imgui.text(f"Intake height: ")

@@ -3,7 +3,9 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/*"
+                "${workspaceFolder}/*",
+                "${workspaceFolder}/include",
+                "${workspaceFolder}/subprojects/asio-1.28.1/include"
             ],
             "defines": [],
             "cStandard": "c17",

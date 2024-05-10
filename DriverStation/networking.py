@@ -5,8 +5,8 @@ import pygame
 import struct
 import queue
 
-TCP_IP = '192.168.0.10' 
-# TCP_IP = 'localhost'
+# TCP_IP = '192.168.0.10' 
+TCP_IP = '127.0.0.1'
 TCP_PORT = 2000
 TIMEOUT=1.0
 
@@ -41,6 +41,8 @@ class ConnectionManager:
     def run(self):
         self.running = True
         while self.running:
+            if self.connected:
+                print("Disconnected")
             self.connected = False
             try:
                 self.socket.setblocking(False)
@@ -48,11 +50,15 @@ class ConnectionManager:
                 self.handle_connection()
                 self.socket.close()
                 self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                print("Disconnected!")
             except socket.error as e: 
-                if e.errno == 106: # endpoint already connected
+                if e.errno == 106 or "WinError 10022" in str(e): # endpoint already connected
+                    print("recreating socket")
                     self.socket.close()
                     self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                elif "WinError 10035" in str(e): # Error 10035 - connecting (but not done yet)
+                    print("connecting...")
+                    time.sleep(0.25) # Give time to connect
+                    self.handle_connection()
                 elif e.errno != 115: # Errno 115 = operation in progress
                     self.connected = False
                     print(f"Failed to connect: {e}. Sleep 1 second...")

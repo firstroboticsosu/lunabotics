@@ -49,7 +49,7 @@ class DsCommunicator
 public:
     DsCommunicator();
 
-    void sendHeartbeat(bool robotEnabled, bool rp2040Connected);
+    void sendHeartbeat(bool robotEnabled, bool rp2040Connected, int robotMode);
     void sendIntakePos(int pos);
     bool receiveMessage(DsPacket *packet);
     void update();

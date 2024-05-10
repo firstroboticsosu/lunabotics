@@ -10,6 +10,18 @@ import camera
 DATA_UNKNOWN="---"
 JOYSTICK_DEADZONE=0.1
 
+class RobotMode(Enum):
+    TELEOP = 0
+    AUTO_EXECAVATE = 1,
+
+    def __str__(self):
+        if(self == self.TELEOP):
+            return "TeleOperated"
+        elif(self == self.HEIGHT_CONTROL):
+            return "Auto Execavate"  
+        return None
+
+
 class LinkageState(Enum):
     RETRACTED = 0
     HEIGHT_CONTROL = 1,
@@ -31,6 +43,13 @@ class RobotTelemetry:
         self.robot_enabled = DATA_UNKNOWN
         self.rp2040_connected = False
         self.intake_pos = DATA_UNKNOWN
+        self.robot_mode = DATA_UNKNOWN
+
+    def set_robot_mode(self, mode):
+        self.robot_mode = mode
+
+    def get_robot_mode(self):
+        return self.robot_mode
 
     def set_robot_enabled(self, enabled):
         self.robot_enabled = enabled
@@ -326,6 +345,7 @@ class RobotCommunicator:
         if packet_type == 0x01: # Heartbeat
             ds_state.get_telemetry().set_robot_enabled(packet[1] != 0)
             ds_state.get_telemetry().set_rp2040_connected(packet[2] != 0)
+            ds_state.get_telemetry().set_robot_mode(RobotMode(packet[3]))
         elif packet_type == 0x03:
             pos = packet[1] | (packet[2] << 8) | (packet[3] << 16) | (packet[3] << 24) 
             pos /= 100

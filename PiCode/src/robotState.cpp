@@ -19,3 +19,4 @@ int8_t RobotState::getDump() { return robotEnabled ? dumpMotor : 0; }
 int8_t RobotState::getIntake() { return robotEnabled ? intakeMotor : 0; }
 int8_t RobotState::getDeploy() { return robotEnabled ? deployMotor : 0; } 
 bool RobotState::isRobotEnabled() { return robotEnabled; }
+RobotMode RobotState::getRobotMode() { return robotMode; }

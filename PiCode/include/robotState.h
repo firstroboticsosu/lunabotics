@@ -2,6 +2,11 @@
 
 #include <stdint.h>
 
+enum RobotMode { 
+  ROBOT_MODE_TELEOP = 0,
+  ROBOT_MODE_AUTO_EXCAVATE = 1,
+};
+
 class RobotState {
 private:
   // These values are 0 - 4095 (12 bits). Thse actual angle is loc*360/4096
@@ -18,6 +23,7 @@ private:
   int8_t dumpMotor = 0;
 
   bool robotEnabled = false;
+  RobotMode robotMode = ROBOT_MODE_TELEOP;
 
 public:
 
@@ -35,4 +41,5 @@ public:
   int8_t getIntake();
   int8_t getDeploy();
   bool isRobotEnabled();
+  RobotMode getRobotMode();
 };

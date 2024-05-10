@@ -67,11 +67,12 @@ void DsCommunicator::sendPacket(uint8_t *data, size_t data_len) {
     }
 }
 
-void DsCommunicator::sendHeartbeat(bool robotEnabled, bool rp2040Connected) {
+void DsCommunicator::sendHeartbeat(bool robotEnabled, bool rp2040Connected, int robotMode) {
     uint8_t packet[11] = {0};
     packet[0] = 0x01;
     packet[1] = robotEnabled;
     packet[2] = rp2040Connected;
+    packet[3] = robotMode;
 
     sendPacket(packet, 11);
 }
