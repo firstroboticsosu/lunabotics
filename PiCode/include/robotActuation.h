@@ -61,7 +61,7 @@ private:
     std::queue<uint8_t> recvData;
     uint8_t outgoingBytes[13];
     uint8_t rxBuf[SERIAL_RX_BUF_SIZE];
-    int positonOfNextOutgoingByte;
+    int positonOfNextOutgoingByte = 0;
     bool byteQueueFull= false;
     bool serialTransmit = false;
     bool reading = false;

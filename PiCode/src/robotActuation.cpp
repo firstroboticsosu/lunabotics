@@ -110,7 +110,6 @@ int RobotActuation::sendCurrentQueue() {
     if (!byteQueueFull && !serialTransmit && !outgoingQueue.empty()) {
         SerialPacket *packet = &outgoingQueue.front();
         addChecksum(packet);
-
         std::copy(std::begin(packet->packet), std::end(packet->packet), outgoingBytes);
 
         outgoingQueue.pop();
@@ -120,8 +119,8 @@ int RobotActuation::sendCurrentQueue() {
 }
 
 void RobotActuation::sendBytesHandler(const asio::error_code &error, std::size_t bytes_transferred) {
-    std::cout << "Sent " << unsigned(bytes_transferred) << " bytes" << std::endl;
-    std::cout << "Error code: " << error.value() << std::endl;
+    // std::cout << "Sent " << unsigned(bytes_transferred) << " bytes" << std::endl;
+    // std::cout << "Error code: " << error.value() << std::endl;
     positonOfNextOutgoingByte += bytes_transferred;
     if (positonOfNextOutgoingByte >= SERIAL_MES_LEN) {
         byteQueueFull = false;
@@ -153,6 +152,7 @@ void RobotActuation::run() {
     if (io.stopped()) {
         io.reset();
     }
+    sendCurrentQueue();
     io.poll();
 
     if (serial.is_open() && !reading) {

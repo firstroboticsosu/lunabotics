@@ -28,7 +28,7 @@ void RobotControl::sendStateToRP2040(RobotActuation *rp2040) {
       currentTime - this->lastDriveCmd > MOTOR_UPDATE_RATE_MS) {
     std::cout << "Send Drive to RP2040 (FL=" << +currentState.getDriveFrontLeft() << ", FR=" << +currentState.getDriveFrontLeft()
               << ", BL=" << +currentState.getDriveFrontLeft() << ", BR=" << +currentState.getDriveFrontLeft() << ")" << std::endl;
-    rp2040->sendDriveMotors(currentState.getDriveFrontLeft(), currentState.getDriveFrontLeft(), currentState.getDriveFrontLeft(), currentState.getDriveFrontLeft());
+    rp2040->sendDriveMotors(currentState.getDriveFrontLeft(), currentState.getDriveFrontRight(), currentState.getDriveBackLeft(), currentState.getDriveBackRight());
     lastDriveCmd = currentTime;
   }
 
@@ -81,19 +81,19 @@ void RobotControl::handleGamepadPacket(GamepadPacket packet) {
   }
 
   // Deploy
-  int8_t deploySpeed = 0;
+  int deploySpeed = 0;
 
   if(packet.isLeftBumperPressed()) {
     deploySpeed = DEPLOY_LOWER_SPEED;
   } else if(packet.issRightBumperPressed()) {
     deploySpeed = DEPLOY_RAISE_SPEED;
-  } else if(packet.getLeftTrigger() > TRIGGER_DEADZONE) {
-    deploySpeed = -packet.getLeftTrigger();
-  } else if(packet.getRightTrigger() > TRIGGER_DEADZONE) {
-    deploySpeed = packet.getRightTrigger();
+  } else if(packet.getLeftTrigger() > TRIGGER_DEADZONE) { // Lower (loosen)
+    deploySpeed = -packet.getLeftTrigger() / 2;
+  } else if(packet.getRightTrigger() > TRIGGER_DEADZONE) { // Lift (Tighten)
+    deploySpeed = packet.getRightTrigger() / 2 * 3;
   }
   
-  currentState.setDeploy(deploySpeed);
+  currentState.setDeploy((int8_t) deploySpeed);
 }
 
 void RobotControl::handleDsHeartbeatPacket(DsHeartbeatPacket packet) {
