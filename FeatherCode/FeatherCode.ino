@@ -7,6 +7,7 @@ extern "C" {
 #include "pico/bootrom.h"
 }
 
+// -- constants --
 #define MESSAGE_TYPE_INTAKE_POSITION 0x41
 #define MESSAGE_TYPE_MOTOR_CMD_ACK 0x60
 #define MESSAGE_TYPE_LOG_MESSAGE 0x61
@@ -123,7 +124,8 @@ void setup() {
 void loop() {
   updateSerial();
   unsigned long currentTime = millis();
-
+  
+  // -- check timings for each packet --
   if(currentTime - lastPacket > ROBOT_TIMEOUT_MS) {
     intakeSpeed = 0.0;
     SendSparkMaxSpeed(INTAKE_MOTOR_CAN_ID, 0.0);
@@ -137,7 +139,6 @@ void loop() {
     }
   }
 
-  // delay(10); // Note: we need a delay in between CAN packets
   if(currentTime - lastSparkMaxPacket > SPARK_MAX_HEARTBEAT_TIME_MS) {
     if(sparkMaxPacketCount == 0) {
       SendSparkMaxHeartbeat();
@@ -171,15 +172,11 @@ void updateSerial() {
   if (!Serial.available()) {
     return;
   }
-  //is data available
   uint8_t incomingByte = Serial.read();
-  //check if we are reading a packet
   if (currentIndex == INDEX_NO_PACKET) {
     //check if it is the sync byte(0xBE)
     if (incomingByte == 0xBE) {
-      //set the index to 0
       currentIndex = 0;
-      //add this to the packet array
       packet[currentIndex++] = incomingByte;
     }
   } else {
@@ -209,7 +206,6 @@ void processPacket()
   lastPacket = millis();
 
   // Packet has a valid checksum, now process
-
   switch (packet[2]) {
     case 0x81:
       HandleSetDriverMotorPacket();
