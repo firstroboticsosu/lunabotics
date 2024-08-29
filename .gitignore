@@ -1,3 +1,4 @@
 PiCode/subprojects
 .vscode/
 DriverStation/__pycache__
+PiCode/build
