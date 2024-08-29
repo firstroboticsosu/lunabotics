@@ -1,4 +1,5 @@
 PiCode/subprojects
 .vscode/
 DriverStation/__pycache__
+DriverStation/venv
 PiCode/build

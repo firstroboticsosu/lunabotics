@@ -7,6 +7,7 @@ All of the dependencies are configured in a virtual environment so in order to r
 To activate the virtual environment and run the program do the following for linux/macOS
 
 ```
+python3 -m venv venv
 source venv/bin/activate
 ```
 
@@ -14,6 +15,12 @@ and for windows do
 
 ```
 .\venv\Scripts\activate
+```
+
+install dependencies
+
+```
+pip install -r requirements.txt
 ```
 
 then to run the driver station
