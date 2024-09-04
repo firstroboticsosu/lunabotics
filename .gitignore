@@ -1,5 +1,7 @@
-PiCode/subprojects
+RobotCode/subprojects
 .vscode/
 DriverStation/__pycache__
 DriverStation/venv
-PiCode/build
+RobotCode/build
+compile_commands.json
+.cache

@@ -15,6 +15,8 @@ cd build
 ./botCode
 ```
 
+If you use clangd as your LSP the compile_commands.json will be output to the build folder after compilation
+
 ## Adding new source files
 
 When contributing new source files make sure to place all headers into the include folder and all C++ files into the src folder.
