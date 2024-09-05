@@ -41,7 +41,7 @@ fi
 # Install apriltag to system
 git clone https://github.com/AprilRobotics/apriltag.git
 cd apriltag || exit
-cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build --target install
+sudo cmake -B build -DCMAKE_BUILD_TYPE=Release
+sudo cmake --build build --target install
 cd ..
-rm -rf ./apriltag
+sudo rm -rf ./apriltag
