@@ -6,6 +6,7 @@
 #include "robotActuation.h"
 #include "robotControl.h"
 #include "robotState.h"
+#include "robotVision.h"
 #include "util.h"
 
 #define DS_HEARTBEAT_RATE_MS 500
@@ -34,11 +35,12 @@ bool handleDsMessages(DsCommunicator &dsComms, RobotControl &control) {
     return anyMessageRecv;
 }
 
-int main() {
+int main(int argc, char *argv[]) {
     std::cout << "Initializing robot code " << std::endl;
     DsCommunicator dsComms;
     RobotActuation rp2040("/dev/ttyACM0", 115200);
     RobotControl control;
+    RobotVision vision(argc, argv);
     std::cout << "Robot code initialized!" << std::endl;
 
 #ifndef _WIN32
@@ -95,10 +97,14 @@ int main() {
                 }
             }
         }
+
+        // update vision state at the end
+        vision.loop();
     }
 
     std::cout << "Shutting down robot code..." << std::endl;
     dsComms.close();
+    vision.cleanup();
     std::cout << "Robot code shutdown. Goodbye!" << std::endl;
 
     return 0;
