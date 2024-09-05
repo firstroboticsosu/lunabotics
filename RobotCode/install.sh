@@ -3,24 +3,24 @@
 # Function to install packages using apt (Debian/Ubuntu)
 install_with_apt() {
     sudo apt-get update
-    sudo apt-get install -y build-essential gdb git pkg-config meson cmake libopencv-dev
+    sudo apt-get install -y build-essential gdb git pkg-config meson ninja-build python3 cmake libopencv-dev
 }
 
 # Function to install packages using yum (Red Hat/CentOS)
 install_with_yum() {
     sudo yum groupinstall -y "Development Tools"
-    sudo yum install -y gdb meson cmake pkgconfig git opencv-dev
+    sudo yum install -y gdb meson cmake pkgconfig git python3 ninja-build opencv-dev
 }
 
 # New package manager used in Fedora
 install_with_dnf() {
     sudo dnf groupinstall -y "Development Tools"
-    sudo dnf install -y gdb meson cmake pkgconfig git opencv-dev
+    sudo dnf install -y gdb meson ninja-build python3 cmake pkgconfig git opencv-dev
 }
 
 # Function to install packages using pacman (Arch Linux)
 install_with_pacman() {
-    sudo pacman -Sy --noconfirm base-devel gdb meson cmake pkgconf git opencv
+    sudo pacman -Sy --noconfirm base-devel gdb meson ninja python3 cmake pkgconf git opencv
 }
 
 if [ -f /etc/arch-release ]; then
