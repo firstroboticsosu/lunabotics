@@ -45,3 +45,14 @@ sudo cmake -B build -DCMAKE_BUILD_TYPE=Release
 sudo cmake --build build --target install
 cd ..
 sudo rm -rf ./apriltag
+
+# Check if /usr/local/lib is already in /etc/ld.so.conf
+if ! grep -q "^/usr/local/lib$" /etc/ld.so.conf; then
+    echo "/usr/local/lib" | sudo tee -a /etc/ld.so.conf > /dev/null
+    # Update the library cache
+    sudo ldconfig
+fi
+
+echo "====================="
+echo "INSTALLATION FINISHED"
+echo "====================="
