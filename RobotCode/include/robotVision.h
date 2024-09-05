@@ -28,5 +28,5 @@ private:
     VideoCapture cap;
     apriltag_detector_t *td;
     apriltag_family_t *tf;
-    const char *famname; 
+    const char *famname;
 };

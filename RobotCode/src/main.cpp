@@ -1,6 +1,7 @@
 
 #include <iostream>
 #include <string>
+#include <thread>
 
 #include "driverStation.h"
 #include "robotActuation.h"
@@ -49,6 +50,8 @@ int main(int argc, char *argv[]) {
     sigaction(SIGINT, &act, NULL);
     sigaction(SIGTERM, &act, NULL);
 #endif
+    // spawn vision on its own thread
+    std::thread visionThread(&RobotVision::loop, &vision);
 
     uint64_t lastSentDsHearbeat = 0;
     uint64_t lastDsMessageRx = getUnixTimeMs();
@@ -97,9 +100,6 @@ int main(int argc, char *argv[]) {
                 }
             }
         }
-
-        // update vision state at the end
-        vision.loop();
     }
 
     std::cout << "Shutting down robot code..." << std::endl;
