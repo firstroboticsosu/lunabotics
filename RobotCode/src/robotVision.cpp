@@ -1,6 +1,5 @@
 #include <iostream>
 #include <iomanip>
-#include <opencv2/opencv.hpp>
 #include "robotVision.h"
 
 using namespace std;
@@ -32,7 +31,7 @@ RobotVision::RobotVision(int argc, char *argv[]) {
     // Initialize camera
     cap.open(getopt_get_int(getopt, "camera"));
     if (!cap.isOpened()) {
-        cerr << "Couldn't open video capture device" << endl;
+        printf("Couldn't open video capture device");
         return;
     }
     
@@ -43,7 +42,7 @@ RobotVision::RobotVision(int argc, char *argv[]) {
     apriltag_detector_add_family(td, tf);
 
     if (errno == ENOMEM) {
-        cerr << "Unable to add family to detector due to insufficient memory. Try choosing an alternative tag family.\n";
+        printf("Unable to add family to detector due to insufficient memory. Try choosing an alternative tag family.\n");
         exit(-1);
     }
 
@@ -117,7 +116,7 @@ void RobotVision::loop() {
         errno = 0;
         cap >> frame;
         if (frame.empty()) {
-            cerr << "Failed to capture image" << endl;
+            printf("Failed to capture image");
             break;
         }
 
@@ -129,7 +128,7 @@ void RobotVision::loop() {
         zarray_t *detections = apriltag_detector_detect(td, &im);
 
         if (errno == EAGAIN) {
-            cerr << "Unable to create the " << td->nthreads << " threads requested.\n";
+            printf("Unable to create the %d threads requested.\n", td->nthreads);
             exit(-1);
         }
 
