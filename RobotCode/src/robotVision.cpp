@@ -37,28 +37,7 @@ RobotVision::RobotVision(int argc, char *argv[]) {
     }
     
     // Initialize tag detector with options
-    tf = NULL;
-    famname = getopt_get_string(getopt, "family");
-    if (!strcmp(famname, "tag36h11")) {
-        tf = tag36h11_create();
-    } else if (!strcmp(famname, "tag25h9")) {
-        tf = tag25h9_create();
-    } else if (!strcmp(famname, "tag16h5")) {
-        tf = tag16h5_create();
-    } else if (!strcmp(famname, "tagCircle21h7")) {
-        tf = tagCircle21h7_create();
-    } else if (!strcmp(famname, "tagCircle49h12")) {
-        tf = tagCircle49h12_create();
-    } else if (!strcmp(famname, "tagStandard41h12")) {
-        tf = tagStandard41h12_create();
-    } else if (!strcmp(famname, "tagStandard52h13")) {
-        tf = tagStandard52h13_create();
-    } else if (!strcmp(famname, "tagCustom48h12")) {
-        tf = tagCustom48h12_create();
-    } else {
-        printf("Unrecognized tag family name. Use e.g. \"tag36h11\".\n");
-        exit(-1);
-    }
+    tf = tagStandard52h13_create();
 
 
     td = apriltag_detector_create();
@@ -76,7 +55,7 @@ RobotVision::RobotVision(int argc, char *argv[]) {
     td->refine_edges = getopt_get_bool(getopt, "refine-edges");
 
     meter.stop();
-    cout << "Detector " << famname << " initialized in "
+    cout << "Detector for 52h13 initialized in "
         << std::fixed << std::setprecision(3) << meter.getTimeSec() << " seconds" << endl;
 #if CV_MAJOR_VERSION > 3
     cout << "  " << cap.get(CAP_PROP_FRAME_WIDTH ) << "x" <<
@@ -92,26 +71,7 @@ RobotVision::RobotVision(int argc, char *argv[]) {
 
 RobotVision::~RobotVision() {
     apriltag_detector_destroy(td);
-
-    if (!strcmp(famname, "tag36h11")) {
-        tag36h11_destroy(tf);
-    } else if (!strcmp(famname, "tag25h9")) {
-        tag25h9_destroy(tf);
-    } else if (!strcmp(famname, "tag16h5")) {
-        tag16h5_destroy(tf);
-    } else if (!strcmp(famname, "tagCircle21h7")) {
-        tagCircle21h7_destroy(tf);
-    } else if (!strcmp(famname, "tagCircle49h12")) {
-        tagCircle49h12_destroy(tf);
-    } else if (!strcmp(famname, "tagStandard41h12")) {
-        tagStandard41h12_destroy(tf);
-    } else if (!strcmp(famname, "tagStandard52h13")) {
-        tagStandard52h13_destroy(tf);
-    } else if (!strcmp(famname, "tagCustom48h12")) {
-        tagCustom48h12_destroy(tf);
-    }
-
-
+    tagStandard52h13_destroy(tf);
     getopt_destroy(getopt);
 }
 
