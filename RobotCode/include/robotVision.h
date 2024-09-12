@@ -16,7 +16,9 @@ public:
     RobotVision(int argc, char *argv[]);
     ~RobotVision();
     void loop();
+    void drawDetections(Mat& frame, zarray_t* detections);
 private:
+    bool enableDraw;
     getopt_t *getopt;
     TickMeter meter;
     VideoCapture cap;
