@@ -90,6 +90,31 @@ RobotVision::RobotVision(int argc, char *argv[]) {
     meter.reset();
 }
 
+RobotVision::~RobotVision() {
+    apriltag_detector_destroy(td);
+
+    if (!strcmp(famname, "tag36h11")) {
+        tag36h11_destroy(tf);
+    } else if (!strcmp(famname, "tag25h9")) {
+        tag25h9_destroy(tf);
+    } else if (!strcmp(famname, "tag16h5")) {
+        tag16h5_destroy(tf);
+    } else if (!strcmp(famname, "tagCircle21h7")) {
+        tagCircle21h7_destroy(tf);
+    } else if (!strcmp(famname, "tagCircle49h12")) {
+        tagCircle49h12_destroy(tf);
+    } else if (!strcmp(famname, "tagStandard41h12")) {
+        tagStandard41h12_destroy(tf);
+    } else if (!strcmp(famname, "tagStandard52h13")) {
+        tagStandard52h13_destroy(tf);
+    } else if (!strcmp(famname, "tagCustom48h12")) {
+        tagCustom48h12_destroy(tf);
+    }
+
+
+    getopt_destroy(getopt);
+}
+
 void RobotVision::loop() {
     Mat frame, gray;
     while (true) {
@@ -143,29 +168,4 @@ void RobotVision::loop() {
             break;
     }
 
-}
-
-void RobotVision::cleanup() {
-    apriltag_detector_destroy(td);
-
-    if (!strcmp(famname, "tag36h11")) {
-        tag36h11_destroy(tf);
-    } else if (!strcmp(famname, "tag25h9")) {
-        tag25h9_destroy(tf);
-    } else if (!strcmp(famname, "tag16h5")) {
-        tag16h5_destroy(tf);
-    } else if (!strcmp(famname, "tagCircle21h7")) {
-        tagCircle21h7_destroy(tf);
-    } else if (!strcmp(famname, "tagCircle49h12")) {
-        tagCircle49h12_destroy(tf);
-    } else if (!strcmp(famname, "tagStandard41h12")) {
-        tagStandard41h12_destroy(tf);
-    } else if (!strcmp(famname, "tagStandard52h13")) {
-        tagStandard52h13_destroy(tf);
-    } else if (!strcmp(famname, "tagCustom48h12")) {
-        tagCustom48h12_destroy(tf);
-    }
-
-
-    getopt_destroy(getopt);
 }

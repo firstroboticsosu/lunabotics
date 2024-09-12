@@ -4,6 +4,7 @@
 
 extern "C" {
 #include <apriltag/apriltag.h>
+#include <apriltag/apriltag_pose.h>
 #include <apriltag/tag36h11.h>
 #include <apriltag/tag25h9.h>
 #include <apriltag/tag16h5.h>
@@ -20,8 +21,8 @@ using namespace cv;
 class RobotVision {
 public:
     RobotVision(int argc, char *argv[]);
+    ~RobotVision();
     void loop();
-    void cleanup();
 private:
     getopt_t *getopt;
     TickMeter meter;

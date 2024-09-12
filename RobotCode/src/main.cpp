@@ -104,7 +104,6 @@ int main(int argc, char *argv[]) {
 
     std::cout << "Shutting down robot code..." << std::endl;
     dsComms.close();
-    vision.cleanup();
     std::cout << "Robot code shutdown. Goodbye!" << std::endl;
 
     return 0;
