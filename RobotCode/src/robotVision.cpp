@@ -30,12 +30,10 @@ RobotVision::RobotVision(int argc, char *argv[]) {
     meter.start();
 
     // Initialize camera
-    if (!getopt_get_bool(getopt, "quiet")) {
-        cap.open(getopt_get_int(getopt, "camera"));
-        if (!cap.isOpened()) {
-            cerr << "Couldn't open video capture device\n";
-            return;
-        }
+    cap.open(getopt_get_int(getopt, "camera"));
+    if (!cap.isOpened()) {
+        cerr << "Couldn't open video capture device\n";
+        return;
     }
     
     // Initialize tag detector with options
