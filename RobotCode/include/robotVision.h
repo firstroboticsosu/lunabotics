@@ -1,4 +1,5 @@
 #pragma once
+#include "common/zarray.h"
 #include "opencv2/videoio.hpp"
 #include <opencv2/opencv.hpp>
 
@@ -17,6 +18,7 @@ public:
     ~RobotVision();
     void loop();
     void drawDetections(Mat& frame, zarray_t* detections);
+    void logPoses(zarray_t* detections);
 private:
     bool enableDraw;
     getopt_t *getopt;

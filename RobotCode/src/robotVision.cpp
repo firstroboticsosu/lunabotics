@@ -1,7 +1,10 @@
 #include <iostream>
 #include <iomanip>
 #include "robotVision.h"
+#include "apriltag_pose.h"
 #include "common/getopt.h"
+#include "common/matd.h"
+#include "common/zarray.h"
 
 using namespace std;
 using namespace cv;
@@ -54,7 +57,7 @@ RobotVision::RobotVision(int argc, char *argv[]) {
     td->refine_edges = getopt_get_bool(getopt, "refine-edges");
 
     enableDraw = td->debug && !getopt_get_bool(getopt, "quiet");
-
+    
     meter.stop();
     cout << "Detector for 52h13 initialized in "
         << std::fixed << std::setprecision(3) << meter.getTimeSec() << " seconds" << endl;
@@ -110,6 +113,33 @@ void RobotVision::drawDetections(Mat& frame, zarray_t* detections) {
     }
 }
 
+void RobotVision::logPoses(zarray_t* detections) {
+    for (int i = 0; i < zarray_size(detections); i++) {
+        apriltag_detection_t *det;
+        zarray_get(detections, i, &det);
+        apriltag_detection_info_t detinfo;
+        detinfo.det = det;
+        apriltag_pose_t pose;
+        // fake camera data for now
+        // TODO: make a calibration sequence using opencv
+        detinfo.fx = 600.0;  // Focal length in x (pixels)
+        detinfo.fy = 600.0;  // Focal length in y (pixels)
+        detinfo.cx = 320.0;  // Principal point x (pixels)
+        detinfo.cy = 240.0;  // Principal point y (pixels)
+        detinfo.tagsize = 0.05;  // Actual size of the tag in meters (e.g., 5 cm)
+
+        // collect pose data into the structs;
+        double error = estimate_tag_pose(&detinfo, &pose);
+
+        cout << "Tag id: " << det->id << " Object Space Error: " << error << endl;
+        cout << "Translation: " << "[";
+        cout << format("Translation: [%.3f, %.3f, %.3f].\n", MATD_EL(pose.t, 0, 0), MATD_EL(pose.t, 1, 0), MATD_EL(pose.t, 2, 0));
+        cout << "Rotation Matrix:\n"; 
+        matd_print(pose.R, "%.3f");
+    }
+
+}
+
 void RobotVision::loop() {
     Mat frame, gray;
     
@@ -134,6 +164,7 @@ void RobotVision::loop() {
         }
 
         drawDetections(frame, detections);
+        logPoses(detections);
 
         apriltag_detections_destroy(detections);
 
