@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include "robotVision.h"
+#include "common/getopt.h"
 
 using namespace std;
 using namespace cv;
@@ -21,7 +22,7 @@ RobotVision::RobotVision(int argc, char *argv[]) {
 
     if (!getopt_parse(getopt, argc, argv, 1) ||
             getopt_get_bool(getopt, "help")) {
-        printf("Usage: %s [options]\n", argv[0]);
+        cout << "Usage: " << argv[0] << " [options]\n";
         getopt_do_usage(getopt);
         exit(0);
     }
@@ -29,10 +30,12 @@ RobotVision::RobotVision(int argc, char *argv[]) {
     meter.start();
 
     // Initialize camera
-    cap.open(getopt_get_int(getopt, "camera"));
-    if (!cap.isOpened()) {
-        printf("Couldn't open video capture device");
-        return;
+    if (!getopt_get_bool(getopt, "quiet")) {
+        cap.open(getopt_get_int(getopt, "camera"));
+        if (!cap.isOpened()) {
+            cerr << "Couldn't open video capture device\n";
+            return;
+        }
     }
     
     // Initialize tag detector with options
@@ -42,7 +45,7 @@ RobotVision::RobotVision(int argc, char *argv[]) {
     apriltag_detector_add_family(td, tf);
 
     if (errno == ENOMEM) {
-        printf("Unable to add family to detector due to insufficient memory. Try choosing an alternative tag family.\n");
+        cerr << "Unable to add family to detector due to insufficient memory. Try choosing an alternative tag family.\n";
         exit(-1);
     }
 
