@@ -13,7 +13,7 @@ objp[:,:2] = np.mgrid[0:7,0:6].T.reshape(-1,2)
 objpoints = [] # 3d point in real world space
 imgpoints = [] # 2d points in image plane.
  
-images = glob.glob('image/*.jpg')
+images = glob.glob('images/*.jpg')
  
 for fname in images:
     img = cv.imread(fname)
@@ -33,10 +33,7 @@ for fname in images:
         cv.drawChessboardCorners(img, (7,6), corners2, ret)
         cv.imshow('img', img)
         cv.waitKey(500)
-        
  
 cv.destroyAllWindows()
-
-#ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
-#print(mtx)
-
+ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
+print(mtx)
