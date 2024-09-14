@@ -67,12 +67,13 @@ void DsCommunicator::sendPacket(uint8_t *data, size_t data_len) {
     }
 }
 
-void DsCommunicator::sendHeartbeat(bool robotEnabled, bool rp2040Connected, int robotMode) {
+void DsCommunicator::sendHeartbeat(bool robotEnabled, bool rp2040Connected, int robotMode, int autoState) {
     uint8_t packet[11] = {0};
     packet[0] = 0x01;
     packet[1] = robotEnabled;
     packet[2] = rp2040Connected;
     packet[3] = robotMode;
+    packet[4] = autoState;
 
     sendPacket(packet, 11);
 }
@@ -112,6 +113,10 @@ int8_t GamepadPacket::getRightTrigger() { return packet.data[8]; }
 bool GamepadPacket::isButtonAPressed() { return packet.data[5] & 0x40; }
 
 bool GamepadPacket::isButtonBPressed() { return packet.data[5] & 0x80; }
+
+bool GamepadPacket::isButtonXPressed() { return packet.data[6] & 0x01; }
+
+bool GamepadPacket::isButtonYPressed() { return packet.data[6] & 0x02; }
 
 bool GamepadPacket::isDpadUp() { return packet.data[5] & 0x04; }
 

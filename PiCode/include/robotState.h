@@ -32,6 +32,8 @@ public:
   void setDump(int8_t speed);
   void setIntake(int8_t speed);
   void setDeploy(int8_t value);
+  void setMode(RobotMode mode);
+  void stopAll();
 
   int8_t getDriveFrontLeft();
   int8_t getDriveFrontRight();

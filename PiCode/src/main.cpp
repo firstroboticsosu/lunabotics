@@ -28,6 +28,8 @@ bool handleDsMessages(DsCommunicator &dsComms, RobotControl &control) {
         } else if (type == DS_PACKET_GAMEPAD) {
             GamepadPacket gamepadPacket(dsPacket);
             control.handleGamepadPacket(gamepadPacket);
+        } else if (type == DS_RUN_AUTO_PACKET) {
+            control.startAutoDig();
         }
     }
 
@@ -58,7 +60,7 @@ int main() {
         if (dsComms.isConnected()) {
             if (currentTime - lastSentDsHearbeat > DS_HEARTBEAT_RATE_MS) {
                 dsComms.sendHeartbeat(control.getRobotState().isRobotEnabled(), rp2040.isConnected(),
-                                      control.getRobotState().getRobotMode());
+                                      control.getRobotState().getRobotMode(), control.getAutoState());
                 lastSentDsHearbeat = currentTime;
             }
 
@@ -75,6 +77,7 @@ int main() {
         }
 
         // RP2040 Comms
+        control.update();
         control.sendStateToRP2040(&rp2040);
         rp2040.run();
 

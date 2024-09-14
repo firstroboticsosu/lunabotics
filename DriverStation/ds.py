@@ -10,21 +10,45 @@ import camera
 DATA_UNKNOWN="---"
 JOYSTICK_DEADZONE=0.1
 
+class AutoState(Enum):
+    AUTO_STATE_NONE = 0
+    AUTO_STATE_SLEEP = 1
+    AUTO_STATE_LOWER_INTAKE = 2
+    AUTO_STATE_DIG = 3
+    AUTO_STATE_RAISE_INTAKE = 4
+    AUTO_STATE_COMPLETE = 5
+
+    def __str__(self):
+        if(self == self.AUTO_STATE_NONE):
+            return "N/A"
+        elif(self == self.AUTO_STATE_SLEEP):
+            return "Sleeping"
+        elif(self == self.AUTO_STATE_LOWER_INTAKE):
+            return "Lower Intake"
+        elif(self == self.AUTO_STATE_DIG):
+            return "Dig"
+        elif(self == self.AUTO_STATE_RAISE_INTAKE):
+            return "Raise Intake"
+        elif(self == self.AUTO_STATE_COMPLETE):
+            return "Complete"
+        
+        return None
+
 class RobotMode(Enum):
     TELEOP = 0
-    AUTO_EXECAVATE = 1,
+    AUTO_EXCAVATE = 1
 
     def __str__(self):
         if(self == self.TELEOP):
             return "TeleOperated"
-        elif(self == self.HEIGHT_CONTROL):
-            return "Auto Execavate"  
+        elif(self == self.AUTO_EXCAVATE):
+            return "Auto Excavate"  
         return None
 
 
 class LinkageState(Enum):
     RETRACTED = 0
-    HEIGHT_CONTROL = 1,
+    HEIGHT_CONTROL = 1
     MANUAL = 2
 
     def __str__(self):
@@ -44,6 +68,7 @@ class RobotTelemetry:
         self.rp2040_connected = False
         self.intake_pos = DATA_UNKNOWN
         self.robot_mode = DATA_UNKNOWN
+        self.auto_state = DATA_UNKNOWN
 
     def set_robot_mode(self, mode):
         self.robot_mode = mode
@@ -68,6 +93,12 @@ class RobotTelemetry:
 
     def get_intake_pos(self):
         return self.intake_pos
+    
+    def set_auto_state(self, state):
+        self.auto_state = state
+
+    def get_auto_state(self):
+        return self.auto_state
 
 class GamepadState: 
     def __init__(self):
@@ -177,6 +208,7 @@ class DriverStationState:
         self.running = True
         self.robot_connected = False
         self.robot_enabled = False
+        self.send_auto_flag = False
         self.linkage_state = LinkageState.RETRACTED
         self.gamepad = GamepadState()
         self.telemetry = RobotTelemetry()
@@ -211,7 +243,11 @@ class DriverStationState:
         print("Reset intake encoder")
 
     def run_auto_dig(self):
+        self.send_auto_flag = True
         print("Run auto dig")
+
+    def clear_auto_dig_flag(self):
+        self.send_auto_flag = False
 
     def restart_robot_code(self):
         print("Restart robot code")
@@ -339,6 +375,15 @@ class RobotCommunicator:
         connection.send_packet(packet)
         self.last_heartbeat = time.time()
 
+
+    def send_auto_start(self, connection: networking.ConnectionManager):
+        packet = struct.pack(
+            '!bbbbbbbbbbb',
+            0x03, 
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        )
+        connection.send_packet(packet)
+
     def handle_packet(self, packet, ds_state : DriverStationState):
         packet_type = packet[0]
 
@@ -346,6 +391,7 @@ class RobotCommunicator:
             ds_state.get_telemetry().set_robot_enabled(packet[1] != 0)
             ds_state.get_telemetry().set_rp2040_connected(packet[2] != 0)
             ds_state.get_telemetry().set_robot_mode(RobotMode(packet[3]))
+            ds_state.get_telemetry().set_auto_state(AutoState(packet[4]))
         elif packet_type == 0x03:
             pos = packet[1] | (packet[2] << 8) | (packet[3] << 16) | (packet[3] << 24) 
             pos /= 100
@@ -353,12 +399,16 @@ class RobotCommunicator:
         else:
             print(f"Unknown packet type from robot: {packet_type}")
 
-    def update(self, ds_state, connection: networking.ConnectionManager):
+    def update(self, ds_state : DriverStationState, connection: networking.ConnectionManager):
         if time.time() - self.last_gamepad_packet > 0.02:
             self.send_gamepad_packet(ds_state.get_gamepad(), connection)
 
         if time.time() - self.last_heartbeat > 0.1:
             self.send_heartbeat(ds_state, connection)
+
+        if ds_state.send_auto_flag:
+            self.send_auto_start(connection)
+            ds_state.clear_auto_dig_flag()
 
         packet = connection.get_next_packet()
         while packet is not None:

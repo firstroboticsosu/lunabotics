@@ -10,6 +10,7 @@
 enum DsPacketType {
     DS_PACKET_HEARTBEAT = 0x01,
     DS_PACKET_GAMEPAD = 0x02,
+    DS_RUN_AUTO_PACKET = 0x03
 };
 
 struct DsPacket {
@@ -30,6 +31,8 @@ struct GamepadPacket {
 
     bool isButtonAPressed();
     bool isButtonBPressed();
+    bool isButtonXPressed();
+    bool isButtonYPressed();
     bool isDpadUp();
     bool isDpadDown();
     bool isLeftBumperPressed();
@@ -49,7 +52,7 @@ class DsCommunicator
 public:
     DsCommunicator();
 
-    void sendHeartbeat(bool robotEnabled, bool rp2040Connected, int robotMode);
+    void sendHeartbeat(bool robotEnabled, bool rp2040Connected, int robotMode, int autoState);
     void sendIntakePos(int pos);
     bool receiveMessage(DsPacket *packet);
     void update();

@@ -3,6 +3,15 @@
 #include "robotActuation.h"
 #include "robotState.h"
 
+enum AutoState { 
+    AUTO_STATE_NONE = 0,
+    AUTO_STATE_SLEEP,
+    AUTO_STATE_LOWER_INTAKE,
+    AUTO_STATE_DIG,
+    AUTO_STATE_RAISE_INTAKE,
+    AUTO_STATE_COMPLETE
+};
+
 class RobotControl{
 private:
     RobotState currentState;
@@ -15,7 +24,12 @@ private:
     uint64_t lastIntakeCmd = 0;
     uint64_t lastDeployCmd = 0;
 
+    AutoState autoState = AUTO_STATE_NONE;
+    uint64_t lastAutoStageStart = 0;
+
 public:
+
+    void update();
 
     void sendStateToRP2040(RobotActuation *rp2040);
 
@@ -23,9 +37,17 @@ public:
 
     void handleDsHeartbeatPacket(DsHeartbeatPacket packet);
 
+    void startAutoDig();
+
     void disableRobot();
 
     RobotState& getRobotState();
+
+    AutoState getAutoState();
+
+private:
+
+    void changeAutoState(AutoState newState);
 
     // int robotStartup();
 
