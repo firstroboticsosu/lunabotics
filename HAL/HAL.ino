@@ -5,6 +5,7 @@
 
 extern "C" {
 #include "pico/bootrom.h"
+#include "SPARK_MAX.h"
 }
 
 // -- constants --
@@ -86,6 +87,8 @@ float intakeAngle = 0;
 
 AMS_5600 ams5600;
 
+static struct frc_can_driver *can_drivers[] = {spark_max_get_driver()};
+
 void setup() {
   Serial.begin(115200);
   Wire.begin();
@@ -97,6 +100,8 @@ void setup() {
     while(1) delay(10);
   }
   SendLogMessage("CAN OK");
+
+  frc_can_init(can_drivers, sizeof(can_drivers) / sizeof(can_drivers[0]));
 
   frontLeftMotor.attach(FRONT_LEFT_MOTOR_PIN);
   backLeftMotor.attach(BACK_LEFT_MOTOR_PIN);
