@@ -113,6 +113,18 @@ void RobotVision::drawDetections(Mat& frame, zarray_t* detections) {
     }
 }
 
+static double calculate_distance_from_tag(apriltag_pose_t *pose) {
+    // Extract the translation vector t from the pose (tx, ty, tz)
+    double tx = pose->t->data[0];  // X coordinate
+    double ty = pose->t->data[1];  // Y coordinate
+    double tz = pose->t->data[2];  // Z coordinate
+
+    // Calculate the Euclidean distance from the camera to the tag
+    double distance = sqrt(tx * tx + ty * ty + tz * tz);
+
+    return distance;  // Distance in meters if calibration is correct
+}
+
 void RobotVision::logPoses(zarray_t* detections) {
     for (int i = 0; i < zarray_size(detections); i++) {
         apriltag_detection_t *det;
@@ -120,21 +132,19 @@ void RobotVision::logPoses(zarray_t* detections) {
         apriltag_detection_info_t detinfo;
         detinfo.det = det;
         apriltag_pose_t pose;
-        // fake camera data for now
-        // TODO: make a calibration sequence using opencv
-        detinfo.fx = 600.0;  // Focal length in x (pixels)
-        detinfo.fy = 600.0;  // Focal length in y (pixels)
-        detinfo.cx = 320.0;  // Principal point x (pixels)
-        detinfo.cy = 240.0;  // Principal point y (pixels)
-        detinfo.tagsize = 0.05;  // Actual size of the tag in meters (e.g., 5 cm)
+        detinfo.fx = 2135.6445;  // Focal length in x (pixels)
+        detinfo.fy = 2153.87113;  // Focal length in y (pixels)
+        detinfo.cx = 900.214753;  // Principal point x (pixels)
+        detinfo.cy = 620.821586;  // Principal point y (pixels)
+        detinfo.tagsize = 0.06;  // Actual size of the tag in meters (e.g., 5 cm)
 
         // collect pose data into the structs;
         double error = estimate_tag_pose(&detinfo, &pose);
-
         cout << "Tag id: " << det->id << " Object Space Error: " << error << endl;
-        cout << "Translation: " << "[";
-        cout << format("Translation: [%.3f, %.3f, %.3f].\n", MATD_EL(pose.t, 0, 0), MATD_EL(pose.t, 1, 0), MATD_EL(pose.t, 2, 0));
-        cout << "Rotation Matrix:\n"; 
+        //cout << "Translation: " << "[";
+        //cout << format("Translation: [%.3f, %.3f, %.3f].\n", MATD_EL(pose.t, 0, 0), MATD_EL(pose.t, 1, 0), MATD_EL(pose.t, 2, 0));
+        //cout << "Rotation Matrix:\n";
+        cout << "Tag distance: " << calculate_distance_from_tag(&pose);
         matd_print(pose.R, "%.3f");
     }
 
