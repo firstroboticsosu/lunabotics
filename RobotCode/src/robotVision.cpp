@@ -132,10 +132,10 @@ void RobotVision::logPoses(zarray_t* detections) {
         apriltag_detection_info_t detinfo;
         detinfo.det = det;
         apriltag_pose_t pose;
-        detinfo.fx = 2135.6445;  // Focal length in x (pixels)
-        detinfo.fy = 2153.87113;  // Focal length in y (pixels)
-        detinfo.cx = 900.214753;  // Principal point x (pixels)
-        detinfo.cy = 620.821586;  // Principal point y (pixels)
+        detinfo.fx = 2156.27747;  // Focal length in x (pixels)
+        detinfo.fy = 2163.17735;  // Focal length in y (pixels)
+        detinfo.cx = 995.533627;  // Principal point x (pixels)
+        detinfo.cy = 645.398806;  // Principal point y (pixels)
         detinfo.tagsize = 0.06;  // Actual size of the tag in meters (e.g., 5 cm)
 
         // collect pose data into the structs;
