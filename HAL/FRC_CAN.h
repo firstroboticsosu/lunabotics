@@ -21,16 +21,16 @@ typedef enum frc_can_device_id {
     CAN_DEVICE_ID_NONE = 255,
 } frc_can_device_id_t;
 
-enum frc_can_manufacturer {
+typedef enum frc_can_manufacturer {
     CAN_MANUFACTURER_CTRE = 4,
     CAN_MANUFACTURER_REV = 5,
-};
+} frc_can_manufacturer_t;
 
-enum frc_can_device_type { 
+typedef enum frc_can_device_type { 
     CAN_DEVICE_TYPE_BROADCAST = 1,
     CAN_DEVICE_TYPE_MOTOR_CONTROLLER = 2,
     CAN_DEVICE_TYPE_POWER_DISTRIBUTION = 8,
-};
+} frc_can_device_type_t;
 
 typedef struct frc_can_frame {
     enum frc_can_manufacturer manufacturer;
@@ -44,12 +44,12 @@ typedef struct frc_can_frame {
 typedef void (*frc_can_driver_on_update)();
 typedef void (*frc_can_driver_on_receive)();
 
-struct frc_can_driver {
+typedef struct frc_can_driver {
     enum frc_can_manufacturer manufacturer;
     enum frc_can_device_type device_type;
     frc_can_driver_on_update on_update;
     frc_can_driver_on_receive on_recv;
-};
+} frc_can_driver_t;
 
 /**
  * @brief Initializes the CAN driver
@@ -57,7 +57,7 @@ struct frc_can_driver {
  * @param drivers 
  * @param driver_count 
  */
-void frc_can_init(struct frc_can_driver **drivers, size_t driver_count);
+void frc_can_init(frc_can_driver_t **drivers, size_t driver_count);
 
 /**
  * @brief Establishes a connection on the CAN bus. 
