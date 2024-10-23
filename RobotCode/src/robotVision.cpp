@@ -139,7 +139,7 @@ void RobotVision::logPoses(zarray_t* detections) {
         detinfo.fy = 2163.17735;  // Focal length in y (pixels)
         detinfo.cx = 995.533627;  // Principal point x (pixels)
         detinfo.cy = 645.398806;  // Principal point y (pixels)
-        detinfo.tagsize = 0.06;  // Actual size of the tag in meters (e.g., 5 cm)
+        detinfo.tagsize = 0.16;  // Actual size of the tag in meters (e.g., 5 cm)
 
         // collect pose data into the structs;
         double error = estimate_tag_pose(&detinfo, &pose);
