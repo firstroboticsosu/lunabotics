@@ -4,7 +4,7 @@
  * @brief A driver for controlling the SPARK MAX motor controller via the CAN BUS. 
  */
 
-#include "FRC_CAN.h"
+#include "../FRC_CAN.h"
 
 typedef enum spark_max {
     SPARK_MAX_INTAKE,
