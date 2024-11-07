@@ -43,7 +43,9 @@ RobotVision::RobotVision(int argc, char *argv[]) {
     tf = tagStandard52h13_create();
 
     td = apriltag_detector_create();
+
     apriltag_detector_add_family(td, tf);
+    cout << "we got past here" << endl;
 
     if (errno == ENOMEM) {
         cerr << "Unable to add family to detector due to insufficient memory. Try choosing an alternative tag family.\n";
@@ -74,6 +76,7 @@ RobotVision::RobotVision(int argc, char *argv[]) {
 }
 
 RobotVision::~RobotVision() {
+    cout << "if this prints im confused" << endl;
     apriltag_detector_destroy(td);
     tagStandard52h13_destroy(tf);
     getopt_destroy(getopt);
@@ -132,11 +135,11 @@ void RobotVision::logPoses(zarray_t* detections) {
         apriltag_detection_info_t detinfo;
         detinfo.det = det;
         apriltag_pose_t pose;
-        detinfo.fx = 2135.6445;  // Focal length in x (pixels)
-        detinfo.fy = 2153.87113;  // Focal length in y (pixels)
-        detinfo.cx = 900.214753;  // Principal point x (pixels)
-        detinfo.cy = 620.821586;  // Principal point y (pixels)
-        detinfo.tagsize = 0.06;  // Actual size of the tag in meters (e.g., 5 cm)
+        detinfo.fx = 2156.27747;  // Focal length in x (pixels)
+        detinfo.fy = 2163.17735;  // Focal length in y (pixels)
+        detinfo.cx = 995.533627;  // Principal point x (pixels)
+        detinfo.cy = 645.398806;  // Principal point y (pixels)
+        detinfo.tagsize = 0.16;  // Actual size of the tag in meters (e.g., 5 cm)
 
         // collect pose data into the structs;
         double error = estimate_tag_pose(&detinfo, &pose);
@@ -144,8 +147,8 @@ void RobotVision::logPoses(zarray_t* detections) {
         //cout << "Translation: " << "[";
         //cout << format("Translation: [%.3f, %.3f, %.3f].\n", MATD_EL(pose.t, 0, 0), MATD_EL(pose.t, 1, 0), MATD_EL(pose.t, 2, 0));
         //cout << "Rotation Matrix:\n";
-        cout << "Tag distance: " << calculate_distance_from_tag(&pose);
-        matd_print(pose.R, "%.3f");
+        cout << "Tag distance: " << calculate_distance_from_tag(&pose) << endl;
+        matd_print(pose.R, "%.3f\n");
     }
 
 }
@@ -153,7 +156,7 @@ void RobotVision::logPoses(zarray_t* detections) {
 void RobotVision::loop() {
     Mat frame, gray;
     
-    while (true) {
+    while (!shutdownFlag) {
         errno = 0;
         cap >> frame;
         if (frame.empty()) {

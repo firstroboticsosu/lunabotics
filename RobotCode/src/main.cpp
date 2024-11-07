@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <string>
 #include <thread>
@@ -51,6 +50,7 @@ int main(int argc, char *argv[]) {
     sigaction(SIGTERM, &act, NULL);
 #endif
     // spawn vision on its own thread
+    std::cout << "spawning thread for vision" << std::endl;
     std::thread visionThread(&RobotVision::loop, &vision);
 
     uint64_t lastSentDsHearbeat = 0;
@@ -100,6 +100,12 @@ int main(int argc, char *argv[]) {
                 }
             }
         }
+    }
+    std::cout << "Stopping vision thread..." << std::endl; 
+    vision.stopThread();
+
+    if (visionThread.joinable()) {
+        visionThread.join();
     }
 
     std::cout << "Shutting down robot code..." << std::endl;

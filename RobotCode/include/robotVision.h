@@ -17,9 +17,11 @@ public:
     RobotVision(int argc, char *argv[]);
     ~RobotVision();
     void loop();
+    void stopThread() { shutdownFlag = true; }
     void drawDetections(Mat& frame, zarray_t* detections);
     void logPoses(zarray_t* detections);
 private:
+    bool shutdownFlag = false;
     bool enableDraw;
     getopt_t *getopt;
     TickMeter meter;
