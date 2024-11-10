@@ -120,6 +120,10 @@ void setup() {
       SendError(ERROR_CODE_ENCODER_MAG_FAILURE);
     }
   } else {
+    enum frc_can_manufacturer manufacturer;
+    enum frc_can_device_type device_type;
+    frc_can_driver_on_update on_update;
+    frc_can_driver_on_receive on_recv;
     SendError(ERROR_CODE_ENCODER_INIT_FAILURE);
   }
 
