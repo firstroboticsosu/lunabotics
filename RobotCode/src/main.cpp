@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <thread>
+#include <atomic>
 
 #include "driverStation.h"
 #include "robotActuation.h"
@@ -12,7 +13,7 @@
 #define DS_HEARTBEAT_RATE_MS 500
 #define DS_TIMEOUT_MS 3000
 
-bool shutdown_flag = false;
+std::atomic<bool> shutdown_flag(false);
 
 void handle_shutdown_signal(int signal) { shutdown_flag = true; }
 
@@ -40,7 +41,6 @@ int main(int argc, char *argv[]) {
     DsCommunicator dsComms;
     RobotActuation rp2040("/dev/ttyACM0", 115200);
     RobotControl control;
-    RobotVision vision(argc, argv);
     std::cout << "Robot code initialized!" << std::endl;
 
 #ifndef _WIN32
@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
 #endif
     // spawn vision on its own thread
     std::cout << "spawning thread for vision" << std::endl;
-    std::thread visionThread(&RobotVision::loop, &vision);
+    std::thread visionThread(visionmain, argc, argv, std::ref(shutdown_flag));
 
     uint64_t lastSentDsHearbeat = 0;
     uint64_t lastDsMessageRx = getUnixTimeMs();
@@ -102,8 +102,7 @@ int main(int argc, char *argv[]) {
         }
     }
     std::cout << "Stopping vision thread..." << std::endl; 
-    vision.stopThread();
-
+    shutdown_flag = true;
     if (visionThread.joinable()) {
         visionThread.join();
     }
